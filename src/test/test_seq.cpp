@@ -26,6 +26,7 @@ int main()
 		// test the ringbuffer
 		ringbuffer_t rb(4);
 		ringbuffer_reader_t rd(rb);
+		ringbuffer_reader_t rd2(rb);
 
 		std::size_t n = rb.write("abcd", 5);
 		std::cerr << "written: " << n << std::endl;
@@ -40,8 +41,13 @@ int main()
 
 			// TODO: check read space == 0
 		}
+		assert(!rb.write_space()); // reader 2 is still missing
+		{
+			rd2.read_sequence(3);
+		}
+
 		assert(rb.write("ab", 2) == 2);
-		assert(rb.write_space() == 0);
+		assert(!rb.write_space());
 		{
 			auto s = rd.read_sequence(1);
 			std::cerr << +s[0] << std::endl;
@@ -52,13 +58,21 @@ int main()
 			std::cerr << +s2[0] << std::endl;
 			assert(s2[0] == 98);
 		}
+		assert(!rb.write_space());
+		{
+			rd2.read_sequence(2);
+		}
 		assert(rb.write_space() == 2);
 		rb.write("x", 1);
 		assert(rb.write_space() == 1);
 		{
-			auto s = rd.read_sequence(1);
+			auto s = rd2.read_sequence(1);
 			std::cerr << +s[0] << std::endl;
 			assert(s[0] == 120);
+		}
+		assert(rb.write_space() == 1);
+		{
+			rd.read_sequence(2);
 		}
 		assert(rb.write_space() == 3);
 
