@@ -1,0 +1,46 @@
+0 Greetings
+:::::::::::
+
+Welcome to the installation!
+
+CONTENTS
+
+0 Requirements
+1 Installation
+2 Running
+3 Debugging
+
+0 Requirements
+::::::::::::::
+
+You will need the following libraries, headers and tools:
+
+  * at least g++ 4.8 or clang 3.3
+  * boost % TODO: not
+  * cmake
+
+1 Installation of the commandline interface
+:::::::::::::::::::::::::::::::::::::::::::
+
+In this directory, type:
+
+  mkdir build
+  cd build
+  # for a release build using clang (suggested), where /path/to/zynaddsubfx is
+  # the binary executable for zynaddsubfx
+  cmake	-DCOMPILER=clang \
+	-DCMAKE_BUILD_TYPE=Release \
+	..
+
+2 Running
+:::::::::
+
+You can execute tests now. For example, TODO...
+
+  ./src/TODO <arguments>
+
+3 Debugging
+:::::::::::
+
+TODO
+
