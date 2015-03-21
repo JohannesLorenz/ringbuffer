@@ -34,15 +34,16 @@ private:
 protected:
 	const std::size_t size;
 	const std::size_t size_mask;
-	constexpr static std::size_t reader_mask_dist = 16;
 public:
 	ringbuffer_common_t(std::size_t sz);
 	~ringbuffer_common_t();
 };
 
+//! TODO: specialization for only one reader
 class ringbuffer_t : protected ringbuffer_common_t
 {
 	std::atomic<std::size_t> w_ptr;
+	//! counts number of readers left in previous buffer half
 	std::atomic<std::size_t> readers_left;
 	std::size_t num_readers = 0; //!< to be const after initialisation
 
@@ -53,8 +54,9 @@ class ringbuffer_t : protected ringbuffer_common_t
 
 	friend class ringbuffer_reader_t;
 
-	// version for preloaded write ptr
-	std::size_t write_space_preloaded(std::size_t w, std::size_t rl) const;
+	//! version for preloaded write ptr
+	std::size_t write_space_preloaded(std::size_t w,
+		std::size_t rl) const;
 
 public:
 	//! allocating constructor
@@ -89,22 +91,7 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 
 	std::size_t read(char *dest, std::size_t cnt);
 
-	void try_inc(std::size_t range)
-	{
-		const std::size_t old_read_ptr = read_ptr;
-
-		read_ptr = (read_ptr + range) & size_mask;
-		// TODO: inefficient or
-		// TODO: "range == size"
-		if(((read_ptr ^ old_read_ptr) & (size >> 1)) || range == size) // highest bit flipped
-		{
-		//	std::cerr << "decreasing readers left from " << ref->readers_left <<  "..." << std::endl;
-			--ref->readers_left;
-		//	std::cerr << " ... to " << ref->readers_left << std::endl;
-		//	std::cerr << "reason: " << read_ptr << "^" << old_read_ptr << std::endl;
-		}
-
-	}
+	void try_inc(std::size_t range);
 
 	// TODO: first_half_ptr(), first_half_size(), ...
 	class read_sequence_t
@@ -120,10 +107,13 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 
 		//! single member access
 		const char& operator[](std::size_t idx) {
-			return *(buf + ((reader_ref->read_ptr + idx) & reader_ref->size_mask));
+			return *(buf + ((reader_ref->read_ptr + idx) &
+				reader_ref->size_mask));
 		}
 	};
 public:
+	//! constuctor. registers this reader at the ringbuffer
+	//! @note careful: this function is @a not thread-safe
 	ringbuffer_reader_t(ringbuffer_t& ref);
 	read_sequence_t read_sequence(std::size_t range) {
 		return read_sequence_t(*this, range);
