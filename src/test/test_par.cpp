@@ -18,74 +18,85 @@
 /*************************************************************************/
 
 #include <iostream>
+#include <cstdlib>
 #include <cassert>
+#include <thread>
+#include <algorithm>
 #include "../lib/ringbuffer.h"
+
+void init_random() { srandom(42); }
+
+char random_number(char max) {
+	return (char)(random() % max);
+}
+
+void read_messages(ringbuffer_reader_t* _rd)
+{
+	ringbuffer_reader_t& rd = *_rd;
+	unsigned char r = 0;
+	do
+	{
+		while(!rd.read_space())
+		;
+
+		{
+			r = rd.read_sequence(1)[0];
+		}
+
+		while(rd.read_space() < r)
+		;
+
+		{
+			auto seq = rd.read_sequence(r);
+			for(std::size_t x = 0; x < r; ++x) {
+				//std::cerr << x << ": " << seq[x] << std::endl;
+				assert(seq[x] == r);
+			}
+		}
+	} while(r);
+
+}
+
+void write_messages(ringbuffer_t* rb)
+{
+	char tmp_buf[64];
+	constexpr std::size_t max = 10000;
+	for(std::size_t count = 0; count < max; ++count)
+	{
+		char r = random_number(rb->maximum_eventual_write_space() - 1) + 1;
+
+		// spin locks are no good idea here
+		// this is just for demonstration
+		while(rb->write_space() <= (unsigned char)r)
+		;
+
+		std::fill_n(tmp_buf, r+1, r);
+		assert(rb->write(tmp_buf, r+1) == (unsigned char)(r+1)); // write r r+1 times
+	}
+	char r = 0;
+	rb->write(&r, 1);
+}
 
 int main()
 {
-	try {
-		// test the ringbuffer
-		ringbuffer_t rb(4);
-		ringbuffer_reader_t rd(rb);
-		ringbuffer_reader_t rd2(rb);
-		assert(!rd.read_space());
+	ringbuffer_t rb(64);
+	constexpr std::size_t n_readers = 2;
+	ringbuffer_reader_t rd[n_readers] = { rb, rb };
 
-		std::size_t n = rb.write("abcd", 5);
-		assert(n==3);
-		assert(!rb.write_space());
-		// simulate impossible write
-		assert(!rb.write("xyz", 4));
-		{
-			assert(rd.read_space() == 3);
-			auto s = rd.read_sequence(3); // TODO: what if rs is too high?
-			assert(s[0] == 97 && s[1] == 98 && s[2] == 99);
-
-			// TODO: check read space == 0
-		}
-		assert(!rb.write_space()); // reader 2 is still missing
-		{
-			rd2.read_sequence(3);
-		}
-
-		assert(rb.write("ab", 2) == 2);
-		assert(!rb.write_space());
-		{
-			assert(rd.read_space() == 2);
-			auto s = rd.read_sequence(1);
-			assert(s[0] == 97);
-		}
-		{
-			assert(rd.read_space() == 1);
-			auto s2 = rd.read_sequence(1);
-			assert(s2[0] == 98);
-		}
-		assert(!rb.write_space());
-		{
-			rd2.read_sequence(2);
-		}
-		assert(rb.write_space() == 2);
-		assert(!rd.read_space());
-		rb.write("x", 1);
-		assert(rb.write_space() == 1);
-		{
-			assert(rd2.read_space() == 1);
-			auto s = rd2.read_sequence(1);
-			assert(s[0] == 120);
-		}
-		assert(rb.write_space() == 1);
-		{
-			rd.read_sequence(2);
-		}
-		assert(rb.write_space() == 3);
-
-	} catch (const char* s)
+	try
+	{
+		std::thread t1(write_messages, &rb);
+		std::thread t2(read_messages, rd);
+		std::thread t3(read_messages, rd + 1);
+		t1.join(); t2.join(); t3.join();
+	}
+	catch(const char* s)
 	{
 		std::cerr << s << std::endl;
 		return 1;
 	}
 
-	std::cerr << "SUCCESS!" << std::endl;
-
 	return 0;
 }
+
 
