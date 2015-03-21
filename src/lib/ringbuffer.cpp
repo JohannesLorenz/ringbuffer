@@ -183,15 +183,8 @@ std::size_t ringbuffer_reader_t::read_space() const
 /*
 	read_sequence_t
 */
-ringbuffer_reader_t::read_sequence_t::read_sequence_t(ringbuffer_reader_t &rb,
-	std::size_t range) :
-	buf(rb.buf),
-	reader_ref(&rb),
-	range(range)
-{
-}
-
 ringbuffer_reader_t::read_sequence_t::~read_sequence_t()
 {
-	reader_ref->try_inc(range);
+	reader_ref->try_inc(size());
 }
+

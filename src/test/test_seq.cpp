@@ -37,30 +37,32 @@ int main()
 		assert(!rb.write("xyz", 4));
 		{
 			assert(rd.read_space() == 3);
-			auto s = rd.read_sequence(3);
+			rd.peak_max(3);
+			assert(rd.read_space() == 3);
+			auto s = rd.read_max(3);
 			assert(s[0] == 97 && s[1] == 98 && s[2] == 99);
 		}
 		assert(!rd.read_space());
 		assert(!rb.write_space()); // reader 2 is still missing
 		{
-			rd2.read_sequence(3);
+			rd2.read_max(3);
 		}
 
 		assert(rb.write("ab", 2) == 2);
 		assert(!rb.write_space());
 		{
 			assert(rd.read_space() == 2);
-			auto s = rd.read_sequence(1);
+			auto s = rd.read_max(1);
 			assert(s[0] == 97);
 		}
 		{
 			assert(rd.read_space() == 1);
-			auto s2 = rd.read_sequence(1);
+			auto s2 = rd.read_max(1);
 			assert(s2[0] == 98);
 		}
 		assert(!rb.write_space());
 		{
-			rd2.read_sequence(2);
+			rd2.read_max(2);
 		}
 		assert(rb.write_space() == 2);
 		assert(!rd.read_space());
@@ -68,12 +70,12 @@ int main()
 		assert(rb.write_space() == 1);
 		{
 			assert(rd2.read_space() == 1);
-			auto s = rd2.read_sequence(1);
+			auto s = rd2.read_max(1);
 			assert(s[0] == 120);
 		}
 		assert(rb.write_space() == 1);
 		{
-			rd.read_sequence(2);
+			rd.read_max(2);
 		}
 		assert(rb.write_space() == 3);
 

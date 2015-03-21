@@ -94,30 +94,75 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 	void try_inc(std::size_t range);
 
 	// TODO: offer first_half_ptr(), first_half_size(), ...
-	class read_sequence_t
+	class seq_base
 	{
 		const char* const buf;
-		ringbuffer_reader_t* reader_ref;
 		std::size_t range;
+	protected:
+		ringbuffer_reader_t* reader_ref;
 	public:
 		//! requests a read sequence of size range
 		//! TODO: must check read_space!
 		//! TODO: two are invalid
-		read_sequence_t(ringbuffer_reader_t& rb, std::size_t range);
-		~read_sequence_t();
+		seq_base(ringbuffer_reader_t& rb, std::size_t range) :
+			buf(rb.buf),
+			range(range),
+			reader_ref(&rb)
+		{
+		}
 
 		//! single member access
 		const char& operator[](std::size_t idx) {
 			return *(buf + ((reader_ref->read_ptr + idx) &
 				reader_ref->size_mask));
 		}
+
+		std::size_t size() const { return range; }
 	};
+
+	class peak_sequence_t : public seq_base {
+	public:
+		using seq_base::seq_base;
+	};
+	class read_sequence_t : public seq_base {
+	public:
+		using seq_base::seq_base;
+		~read_sequence_t();
+	};
+
 public:
 	//! constuctor. registers this reader at the ringbuffer
 	//! @note careful: this function is @a not thread-safe
 	ringbuffer_reader_t(ringbuffer_t& ref);
-	read_sequence_t read_sequence(std::size_t range) {
-		return read_sequence_t(*this, range);
+
+	template<class Sequence>
+	Sequence _read_max(std::size_t range) {
+		std::size_t rs = read_space();
+		std::size_t rs2 = rs < range ? rs : range;
+		return Sequence(*this, rs2);
+	}
+
+	template<class Sequence>
+	Sequence _read(std::size_t range) {
+		std::size_t rs = read_space();
+		std::size_t rs2 = rs < range ? 0 : range;
+		return Sequence(*this, rs2);
+	}
+
+	read_sequence_t read_max(std::size_t range) {
+		return _read_max<read_sequence_t>(range);
+	}
+
+	read_sequence_t read(std::size_t range) {
+		return _read<read_sequence_t>(range);
+	}
+
+	peak_sequence_t peak_max(std::size_t range) {
+		return _read_max<peak_sequence_t>(range);
+	}
+
+	peak_sequence_t peak(std::size_t range) {
+		return _read<peak_sequence_t>(range);
 	}
 
 	std::size_t read_space() const;

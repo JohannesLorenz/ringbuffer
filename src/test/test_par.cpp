@@ -40,14 +40,14 @@ void read_messages(ringbuffer_reader_t* _rd)
 		;
 
 		{
-			r = rd.read_sequence(1)[0];
+			r = rd.read_max(1)[0];
 		}
 
 		while(rd.read_space() < r)
 		;
 
 		{
-			auto seq = rd.read_sequence(r);
+			auto seq = rd.read_max(r);
 			for(std::size_t x = 0; x < r; ++x) {
 				//std::cerr << x << ": " << seq[x] << std::endl;
 				assert(seq[x] == r);
