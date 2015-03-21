@@ -37,11 +37,10 @@ int main()
 		assert(!rb.write("xyz", 4));
 		{
 			assert(rd.read_space() == 3);
-			auto s = rd.read_sequence(3); // TODO: what if rs is too high?
+			auto s = rd.read_sequence(3);
 			assert(s[0] == 97 && s[1] == 98 && s[2] == 99);
-
-			// TODO: check read space == 0
 		}
+		assert(!rd.read_space());
 		assert(!rb.write_space()); // reader 2 is still missing
 		{
 			rd2.read_sequence(3);

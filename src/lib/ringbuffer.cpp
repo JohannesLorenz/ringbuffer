@@ -154,10 +154,9 @@ void ringbuffer_reader_t::try_inc(std::size_t range)
 	const std::size_t old_read_ptr = read_ptr;
 
 	read_ptr = (read_ptr + range) & size_mask;
-	// TODO: inefficient or
-	// TODO: "range == size"
+	// TODO: inefficient xor
 	// checks if highest bit flipped:
-	if(((read_ptr ^ old_read_ptr) & (size >> 1)) || range == size)
+	if((read_ptr ^ old_read_ptr) & (size >> 1))
 	{
 		--ref->readers_left;
 	}
@@ -168,14 +167,14 @@ ringbuffer_reader_t::ringbuffer_reader_t(ringbuffer_t &ref) :
 	++ref.num_readers;
 }
 
-std::size_t ringbuffer_reader_t::read_space() const // TODO: unused?! correct?
+std::size_t ringbuffer_reader_t::read_space() const
 {
 	const std::size_t
-			w = ref->w_ptr.load(std::memory_order_relaxed),
-			r = read_ptr;
+		w = ref->w_ptr.load(std::memory_order_relaxed),
+		r = read_ptr;
 
 	if (w > r) {
-			return w - r;
+		return w - r;
 	} else {
 		return (w - r + ref->size) & ref->size_mask;
 	}
@@ -194,6 +193,5 @@ ringbuffer_reader_t::read_sequence_t::read_sequence_t(ringbuffer_reader_t &rb,
 
 ringbuffer_reader_t::read_sequence_t::~read_sequence_t()
 {
-	// TODO: check!!!
 	reader_ref->try_inc(range);
 }

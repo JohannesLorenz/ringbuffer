@@ -82,6 +82,7 @@ int main()
 	ringbuffer_t rb(64);
 	constexpr std::size_t n_readers = 2;
 	ringbuffer_reader_t rd[n_readers] = { rb, rb };
+	rb.mlock();
 
 	try
 	{

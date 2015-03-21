@@ -68,7 +68,7 @@ public:
 	//! size that is guaranteed to be writable one all readers
 	//! are up to date
 	std::size_t maximum_eventual_write_space() const {
-		// TODO: might be size >> 1 + 1
+		// TODO: might be (size >> 1 + 1), not sure
 		return size >> 1;
 	}
 
@@ -93,7 +93,7 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 
 	void try_inc(std::size_t range);
 
-	// TODO: first_half_ptr(), first_half_size(), ...
+	// TODO: offer first_half_ptr(), first_half_size(), ...
 	class read_sequence_t
 	{
 		const char* const buf;
@@ -102,6 +102,7 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 	public:
 		//! requests a read sequence of size range
 		//! TODO: must check read_space!
+		//! TODO: two are invalid
 		read_sequence_t(ringbuffer_reader_t& rb, std::size_t range);
 		~read_sequence_t();
 
