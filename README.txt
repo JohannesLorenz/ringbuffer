@@ -23,6 +23,9 @@ CONTENTS
 The ringbuffer is lock-free (using atomics only), and allows multiple readers,
 but only one writer.
 
+The ringbuffer is real-time safe, i.e. guarantees that the functions return
+"fast enough" (except to initialization and cleanup routines).
+
 2 Why using ringbuffer?
 ::::::::::::::::::::
 
@@ -30,6 +33,7 @@ As mentioned, the advantages are:
 
  * a leightweight library, few dependencies
  * lock-freeness while still supporting multiple readers
+ * real-time safety
  * safety (tests are included)
 
 3 License
