@@ -14,18 +14,18 @@ if(COMPILER STREQUAL "gcc")
 	set(CMAKE_CXX_FLAGS_RELEASE "-flto")
 	set(FLTO_FLAGS "-flto")
 
-	SET( CMAKE_CXX_COMPILER "g++" )
-	SET( CMAKE_CC_COMPILER "gcc" )
+	SET( CMAKE_CXX_COMPILER "/usr/bin/g++" ) # the user bin is a dumb fix for a cmake bug
+	SET( CMAKE_CC_COMPILER "/usr/bin/gcc" )
 elseif(COMPILER STREQUAL "clang")
 	set(FLTO_FLAGS "") # not supported by clang on most platforms
 
-	SET( CMAKE_CXX_COMPILER "clang++" )
-	SET( CMAKE_CC_COMPILER "clang" )
+	SET( CMAKE_CXX_COMPILER "/usr/bin/clang++" )
+	SET( CMAKE_CC_COMPILER "/usr/bin/clang" )
 elseif(COMPILER STREQUAL "stoat")
 	set(FLTO_FLAGS "") # not supported
 
-	SET( CMAKE_CXX_COMPILER "stoat-compile++" )
-	SET( CMAKE_CC_COMPILER "stoat-compile" )
+	SET( CMAKE_CXX_COMPILER "/usr/local/bin/stoat-compile++" )
+	SET( CMAKE_CC_COMPILER "/usr/local/bin/stoat-compile" )
 else()
 	message(FATAL_ERROR "Please specify -DCOMPILER=[gcc|clang|stoat]")
 endif()
