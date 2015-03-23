@@ -21,8 +21,13 @@ elseif(COMPILER STREQUAL "clang")
 
 	SET( CMAKE_CXX_COMPILER "clang++" )
 	SET( CMAKE_CC_COMPILER "clang" )
+elseif(COMPILER STREQUAL "stoat")
+	set(FLTO_FLAGS "") # not supported
+
+	SET( CMAKE_CXX_COMPILER "stoat-compile++" )
+	SET( CMAKE_CC_COMPILER "stoat-compile" )
 else()
-	message(FATAL_ERROR "Please specify -DCOMPILER=[gcc|clang]")
+	message(FATAL_ERROR "Please specify -DCOMPILER=[gcc|clang|stoat]")
 endif()
 
 #Name your project here
@@ -47,7 +52,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 # MESSAGE("Options: (-D...=..., cmake -L for details)")
 # MESSAGE(" * COMPILER: ${COMPILER} (allowed: [gcc|clang])")
 
-SET(COMPILER "" CACHE STRING "Compiler to use (allowed: [gcc|clang])")
+SET(COMPILER "" CACHE STRING "Compiler to use (allowed: [gcc|clang|stoat])")
 
 # testing
 enable_testing ()

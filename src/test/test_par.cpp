@@ -31,6 +31,7 @@ char random_number(char max) {
 }
 
 void read_messages(ringbuffer_reader_t* _rd)
+	__attribute__((annotate("realtime")))
 {
 	ringbuffer_reader_t& rd = *_rd;
 	unsigned char r = 0;
@@ -57,13 +58,14 @@ void read_messages(ringbuffer_reader_t* _rd)
 
 }
 
-void write_messages(ringbuffer_t* rb)
+void write_messages(ringbuffer_t* rb, const std::vector<char>& random_numbers)
+	__attribute__((annotate("realtime")))
 {
 	char tmp_buf[64];
-	constexpr std::size_t max = 10000;
-	for(std::size_t count = 0; count < max; ++count)
+	for(std::size_t count = 0; count < random_numbers.size(); ++count)
 	{
-		char r = random_number(rb->maximum_eventual_write_space() - 1) + 1;
+		char r = random_numbers[count]; // TODO: itr
+		//random_number(rb->maximum_eventual_write_space() - 1) + 1;
 
 		// spin locks are no good idea here
 		// this is just for demonstration
@@ -79,14 +81,24 @@ void write_messages(ringbuffer_t* rb)
 
 int main()
 {
+	init_random();
+
 	ringbuffer_t rb(64);
 	constexpr std::size_t n_readers = 2;
 	ringbuffer_reader_t rd[n_readers] = { rb, rb };
 	rb.mlock();
 
+	constexpr std::size_t max = 10000;
+	std::vector<char> random_numbers(max + 1);
+	for(std::size_t count = 0; count < max; ++count)
+	{
+		random_numbers[count] = random_number(rb.maximum_eventual_write_space() - 1) + 1;
+	}
+	random_numbers[max] = 0;
+
 	try
 	{
-		std::thread t1(write_messages, &rb);
+		std::thread t1(write_messages, &rb, random_numbers);
 		std::thread t2(read_messages, rd);
 		std::thread t3(read_messages, rd + 1);
 		t1.join(); t2.join(); t3.join();
