@@ -42,8 +42,6 @@ ringbuffer_common_t::ringbuffer_common_t(std::size_t sz) :
 	size_mask(size - 1)
 {}
 
-ringbuffer_common_t::~ringbuffer_common_t() {}
-
 /*
 	ringbuffer_t
 */
@@ -96,23 +94,19 @@ std::size_t ringbuffer_t::write_space() const
 
 std::size_t ringbuffer_t::write (const char *src, size_t cnt)
 {
-
-	std::size_t free_cnt;
-	std::size_t cnt2;
-	std::size_t to_write;
-	std::size_t n1, n2;
 	std::size_t w = w_ptr.load(std::memory_order_relaxed);
 	std::size_t rl = readers_left.load(std::memory_order_relaxed);
 
 	// size calculations
+	std::size_t free_cnt;
 	if ((free_cnt = write_space_preloaded(w, rl)) == 0) {
 		return 0;
 	}
 
-	to_write = cnt > free_cnt ? free_cnt : cnt;
+	const std::size_t to_write = cnt > free_cnt ? free_cnt : cnt;
+	const std::size_t cnt2 = w + to_write;
 
-	cnt2 = w + to_write;
-
+	std::size_t n1, n2;
 	if (cnt2 > size) {
 		n1 = size - w_ptr.load(std::memory_order_relaxed);
 		n2 = cnt2 & size_mask;
@@ -164,7 +158,7 @@ void ringbuffer_reader_t::try_inc(std::size_t range)
 
 ringbuffer_reader_t::ringbuffer_reader_t(ringbuffer_t &ref) :
 	ringbuffer_common_t(ref.size), buf(ref.buf), ref(&ref) {
-	++ref.num_readers;
+	++ref.num_readers; // register at the writer
 }
 
 std::size_t ringbuffer_reader_t::read_space() const
