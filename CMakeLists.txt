@@ -8,6 +8,7 @@ cmake_minimum_required(VERSION 2.8)
 #Compiler
 set(WARN_EXC "")
 
+if(not COMPILER_SET STREQUAL "1")
 if(COMPILER STREQUAL "gcc")
 	# enable these flags if you get tons of errors from boost...
 	#set(WARN_EXC "-Wno-unused-local-typedefs -Wno-maybe-uninitialized")
@@ -28,6 +29,7 @@ elseif(COMPILER STREQUAL "stoat")
 	SET( CMAKE_CC_COMPILER "/usr/local/bin/stoat-compile" )
 else()
 	message(FATAL_ERROR "Please specify -DCOMPILER=[gcc|clang|stoat]")
+endif()
 endif()
 
 #Name your project here
