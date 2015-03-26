@@ -1,1 +1,1 @@
-TODO: MLOCK
+#cmakedefine USE_MLOCK

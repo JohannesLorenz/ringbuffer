@@ -13,8 +13,9 @@ INCLUDEPATH += . src/lib
 HEADERS += src/lib/ringbuffer.h
 SOURCES += src/lib/ringbuffer.cpp \
 	src/test/test_seq.cpp \
-    src/test/test_par.cpp
+	src/test/test_par.cpp
 
 OTHER_FILES += src/lib/CMakeLists.txt \
 	src/test/CMakeLists.txt \
-	CMakeLists.txt
+	CMakeLists.txt \
+	src/config.h.in

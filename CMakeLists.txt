@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 2.8)
 #Compiler
 set(WARN_EXC "")
 
-if(not COMPILER_SET STREQUAL "1")
+if(NOT COMPILER_SET STREQUAL "1")
 if(COMPILER STREQUAL "gcc")
 	# enable these flags if you get tons of errors from boost...
 	#set(WARN_EXC "-Wno-unused-local-typedefs -Wno-maybe-uninitialized")
@@ -94,8 +94,14 @@ function(cp_script script_name)
 		${CMAKE_CURRENT_BINARY_DIR}/${script_name} COPYONLY)
 endfunction()
 
-#include_directories("${CMAKE_CURRENT_BINARY_DIR}/src/") # for config.h
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/src/") # for config.h
 #include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/include")
+
+#
+# options
+#
+
+option(USE_MLOCK "provide the mlock system call" ON)
 
 #
 # special headers
