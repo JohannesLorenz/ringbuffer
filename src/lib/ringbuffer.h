@@ -23,7 +23,7 @@
 #include <atomic>
 #include <cstddef>
 
-#define USE_MLOCK // TODO: config.h
+#include "config.h"
 
 class ringbuffer_t;
 
@@ -116,6 +116,10 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 		}
 
 		std::size_t size() const { return range; }
+
+		//const char* first_half_ptr() const { return TODO; }
+		const char* second_half_ptr() const { return buf; }
+		//std::size_t second_half_size() const { return TODO }
 	};
 
 	class peak_sequence_t : public seq_base {
