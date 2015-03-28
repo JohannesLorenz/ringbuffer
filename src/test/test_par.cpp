@@ -30,8 +30,7 @@ char random_number(char max) {
 	return (char)(random() % max);
 }
 
-void read_messages(ringbuffer_reader_t* _rd)
-	__attribute__((annotate("realtime")))
+void __attribute__((annotate("realtime"))) read_messages(ringbuffer_reader_t* _rd)
 {
 	ringbuffer_reader_t& rd = *_rd;
 	unsigned char r = 0;
@@ -58,8 +57,9 @@ void read_messages(ringbuffer_reader_t* _rd)
 
 }
 
-void write_messages(ringbuffer_t* rb, const std::vector<char>& random_numbers)
-	__attribute__((annotate("realtime")))
+//[[annotate("realtime")]] // TODO
+//__atzypper :qtribute__((annotate("realtime")))
+void __attribute__((annotate("realtime"))) write_messages(ringbuffer_t* rb, const std::vector<char>& random_numbers)
 {
 	char tmp_buf[64];
 	for(std::size_t count = 0; count < random_numbers.size(); ++count)
