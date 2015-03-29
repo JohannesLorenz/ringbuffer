@@ -81,6 +81,11 @@ public:
 	//! trys to lock the data block using the syscall @a block
 	//! @return true iff mlock() succeeded, i.e. pages are in RAM
 	bool mlock();
+
+	//! overwrites the whole buffer with zeros
+	//! this prevents page faults
+	//! only allowed on startup (this is not checked!)
+	void touch();
 };
 
 class ringbuffer_reader_t : protected ringbuffer_common_t

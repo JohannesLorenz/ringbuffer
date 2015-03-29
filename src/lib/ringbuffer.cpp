@@ -78,6 +78,11 @@ bool ringbuffer_t::mlock()
 #endif
 }
 
+void ringbuffer_t::touch()
+{
+	std::fill_n(buf, size, 0);
+}
+
 std::size_t ringbuffer_t::write_space_preloaded(std::size_t w,
 	std::size_t rl) const
 {
