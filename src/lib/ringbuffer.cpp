@@ -80,6 +80,7 @@ bool ringbuffer_t::mlock()
 
 void ringbuffer_t::touch()
 {
+	// TODO: assertion r = w?
 	std::fill_n(buf, size, 0);
 }
 
