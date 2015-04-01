@@ -73,6 +73,9 @@ class ringbuffer_t : protected ringbuffer_common_t
 
 public:
 	ringbuffer_t(const ringbuffer_t& other) = delete;
+
+	//! move ctor. should only be used in sequential mode,
+	//! i.e. for initialization
 	ringbuffer_t(ringbuffer_t&& ) = default;
 
 	//! allocating constructor
@@ -103,12 +106,6 @@ public:
 	//! only allowed on startup (this is not checked!)
 	void touch();
 };
-
-void test_move_ctor()
-{
-	ringbuffer_t s(32);
-	ringbuffer_t r(std::move(s));
-}
 
 class ringbuffer_reader_t : protected ringbuffer_common_t
 {
