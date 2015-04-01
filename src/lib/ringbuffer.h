@@ -59,6 +59,8 @@ class ringbuffer_t : protected ringbuffer_common_t
 		std::size_t rl) const;
 
 public:
+	ringbuffer_t(ringbuffer_t&& other) = default;
+
 	//! allocating constructor
 	//! @param sz size of buffer being allocated
 	ringbuffer_t(std::size_t sz);
