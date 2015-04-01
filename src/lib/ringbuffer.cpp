@@ -49,8 +49,8 @@ ringbuffer_t::ringbuffer_t(std::size_t sz) :
 	ringbuffer_common_t(sz),
 	buf(new char[ringbuffer_common_t::size])
 {
-	w_ptr.store(0, std::memory_order_relaxed);
-	readers_left.store(0, std::memory_order_relaxed);
+	w_ptr.store(0);
+	readers_left.store(0);
 }
 
 ringbuffer_t::~ringbuffer_t()
@@ -94,14 +94,14 @@ std::size_t ringbuffer_t::write_space_preloaded(std::size_t w,
 
 std::size_t ringbuffer_t::write_space() const
 {
-	return write_space_preloaded(w_ptr.load(std::memory_order_relaxed),
-		readers_left.load(std::memory_order_relaxed));
+	return write_space_preloaded(w_ptr.load(),
+		readers_left.load());
 }
 
 std::size_t ringbuffer_t::write (const char *src, size_t cnt)
 {
-	std::size_t w = w_ptr.load(std::memory_order_relaxed);
-	std::size_t rl = readers_left.load(std::memory_order_relaxed);
+	std::size_t w = w_ptr.load();
+	std::size_t rl = readers_left.load();
 
 	// size calculations
 	std::size_t free_cnt;
@@ -114,7 +114,7 @@ std::size_t ringbuffer_t::write (const char *src, size_t cnt)
 
 	std::size_t n1, n2;
 	if (cnt2 > size) {
-		n1 = size - w_ptr.load(std::memory_order_relaxed);
+		n1 = size - w;
 		n2 = cnt2 & size_mask;
 	} else {
 		n1 = to_write;
@@ -127,7 +127,7 @@ std::size_t ringbuffer_t::write (const char *src, size_t cnt)
 	{
 		if(rl)
 		 throw "impossible";
-		readers_left.store(num_readers, std::memory_order_relaxed);
+		readers_left.store(num_readers);
 	}
 
 	// here starts the writing
@@ -135,12 +135,12 @@ std::size_t ringbuffer_t::write (const char *src, size_t cnt)
 	std::copy_n(src, n1, &(buf[w]));
 	w = (w + n1) & size_mask;
 	// update so readers are already informed:
-	w_ptr.store(w, std::memory_order_relaxed);
+	w_ptr.store(w);
 
 	if (n2) {
 		std::copy_n(src + n1, n2, &(buf[w]));
 		w = (w + n2) & size_mask;
-		w_ptr.store(w, std::memory_order_relaxed);
+		w_ptr.store(w);
 	}
 
 	return to_write;
@@ -170,7 +170,7 @@ ringbuffer_reader_t::ringbuffer_reader_t(ringbuffer_t &ref) :
 std::size_t ringbuffer_reader_t::read_space() const
 {
 	const std::size_t
-		w = ref->w_ptr.load(std::memory_order_relaxed),
+		w = ref->w_ptr.load(),
 		r = read_ptr;
 
 	if (w > r) {
