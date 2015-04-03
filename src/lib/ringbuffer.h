@@ -109,8 +109,8 @@ public:
 
 class ringbuffer_reader_t : protected ringbuffer_common_t
 {
-	const char* const buf;
-	ringbuffer_t* const ref;
+	const char* buf;
+	ringbuffer_t* ref;
 	std::size_t read_ptr = 0; //!< reader at buf[read_ptr]
 
 	//! increases the @a read_ptr after reading from the buffer
@@ -175,6 +175,13 @@ public:
 	//! constuctor. registers this reader at the ringbuffer
 	//! @note careful: this function is @a not thread-safe
 	ringbuffer_reader_t(ringbuffer_t& ref);
+
+	//! constuctor. no registration yet
+	//! thread safe
+	ringbuffer_reader_t(std::size_t sz);
+
+	//! @note careful: this function is @a not thread-safe
+	void connect(ringbuffer_t &ref);
 
 	read_sequence_t read_max(std::size_t range) {
 		return _read_max<read_sequence_t>(range);

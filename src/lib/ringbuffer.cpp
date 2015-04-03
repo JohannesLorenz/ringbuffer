@@ -162,6 +162,25 @@ void ringbuffer_reader_t::try_inc(std::size_t range)
 	}
 }
 
+ringbuffer_reader_t::ringbuffer_reader_t(std::size_t sz) :
+	ringbuffer_common_t(sz),
+	buf(nullptr),
+	ref(nullptr)
+{
+
+}
+
+void ringbuffer_reader_t::connect(ringbuffer_t& _ref)
+{
+	if(size != _ref.size)
+	 throw "connecting ringbuffers of incompatible sizes";
+	else {
+		buf = _ref.buf;
+		ref = &_ref;
+		++_ref.num_readers; // register at the writer
+	}
+}
+
 ringbuffer_reader_t::ringbuffer_reader_t(ringbuffer_t &ref) :
 	ringbuffer_common_t(ref.size), buf(ref.buf), ref(&ref) {
 	++ref.num_readers; // register at the writer
