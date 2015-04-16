@@ -10,8 +10,6 @@ set(WARN_EXC "")
 
 if(NOT COMPILER_SET STREQUAL "1")
 if(COMPILER STREQUAL "gcc")
-	# enable these flags if you get tons of errors from boost...
-	#set(WARN_EXC "-Wno-unused-local-typedefs -Wno-maybe-uninitialized")
 	set(CMAKE_CXX_FLAGS_RELEASE "-flto")
 	set(FLTO_FLAGS "-flto")
 
@@ -59,32 +57,6 @@ SET(COMPILER "" CACHE STRING "Compiler to use (allowed: [gcc|clang|stoat])")
 # testing
 enable_testing ()
 
-#
-# Machine
-#
-#IF(WIN32)
-#	SET(OS "win32")
-#ELSE(WIN32)
-#	SET(OS "linux")
-#ENDIF(WIN32)
-#
-#SET(MY_HOST_X86 FALSE)
-#SET(MY_HOST_X86_64 FALSE)
-#
-#IF(IS_X86)
-#	SET(MY_HOST_X86 TRUE)
-#	SET(MY_HOST_STR "x86")
-#ELSEIF(IS_X86_64)
-#	SET(MY_HOST_X86_64 TRUE)
-#	SET(MY_HOST_STR "x86_64")
-#ELSE(IS_X86)
-#	MESSAGE("Can't identify target host. Assuming 32 bit platform.")
-#	SET(MY_HOST_X86 TRUE)
-#	SET(MY_HOST_STR "x86")
-#ENDIF(IS_X86)
-#
-#MESSAGE("-- Target host is ${OS}, ${MY_HOST_STR}")
-
 #include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/res/")
 SET(src_base "${CMAKE_CURRENT_SOURCE_DIR}/src/")
 #SET(res_dir "${src_base}res/")
@@ -112,49 +84,10 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
 	${CMAKE_CURRENT_BINARY_DIR}/src/version.h)
 
-# if(CUSTOM_INCLUDE_PATHS STREQUAL "")
-# else()
-# 	include_directories("${CUSTOM_INCLUDE_PATHS}")
-# endif()
-#link_directories("${ADD_LINK_DIRS}")
-
-# INCLUDE (CheckIncludeFiles)
-
-
 MESSAGE("CHECKING FOR LIBRARIES...")
 
 #TODO!!!
-find_package(PkgConfig REQUIRED)
-
-set(Boost_USE_STATIC_LIBS OFF)
-set(Boost_USE_MULTITHREADED OFF)
-set(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost 1.49.0
-	REQUIRED
-	COMPONENTS graph)
-
-#todo: -> rtosc?
-
-#target_link_libraries(minimal ${AUDIO_LIBRARIES})
-
-#find_package(Qt4)
-#if(QT4_FOUND)
-#	set(BUILD_QT_GUI true)
-#else(QT4_FOUND)
-#	set(BUILD_QT_GUI false)
-#endif(QT4_FOUND)
-
-#if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/usr/CMakeLists.txt")
-#	set(BUILD_USR_DIR true)
-#else()
-#	set(BUILD_USR_DIR false)
-#endif()
-
-#if(Boost_FOUND)
-#	include_directories(${Boost_INCLUDE_DIRS})
-#	add_executable(progname file1.cxx file2.cxx)
-#	target_link_libraries(progname ${Boost_LIBRARIES})
-#endif()
+#find_package(PkgConfig REQUIRED)
 
 #
 # Compile
@@ -178,13 +111,7 @@ MESSAGE("READING SUB-DIRECTORIES...")
 add_subdirectory(src)
 add_subdirectory(doc)
 
-add_custom_target(stoat stoat -c -w /usr/local/share/stoat/whitelist.txt -b /usr/local/share/stoat/blacklist.txt -w ${CMAKE_CURRENT_SOURCE_DIR}/data/stoat_suppression_list.txt -r ${CMAKE_CURRENT_BINARY_DIR}/src/)
-
-#target_link_libraries(calc ...)
-
-
-#add_test (test sh ${CMAKE_CURRENT_BINARY_DIR}/src/test.sh)
-#TODO: use cmake instead of sh script?
+add_custom_target(ringbuffer_stoat stoat -c -w /usr/local/share/stoat/whitelist.txt -b /usr/local/share/stoat/blacklist.txt -w ${CMAKE_CURRENT_SOURCE_DIR}/data/stoat_suppression_list.txt -r ${CMAKE_CURRENT_BINARY_DIR}/src/)
 
 #
 # CPack Stuff
@@ -231,18 +158,6 @@ else()
 	set(MSG_BUILD_TYPE_FLAG ${CMAKE_CXX_FLAGS_RELEASE})
 endif()
 MESSAGE(" * Build Type: ${CMAKE_BUILD_TYPE} (${MSG_BUILD_TYPE_FLAG})")
-#if(BUILD_QT_GUI)
-#	set(MSG_QT_FOUND "Yes")
-#else(BUILD_QT_GUI)
-#	set(MSG_QT_FOUND "No - install Qt if you want")
-#endif(BUILD_QT_GUI)
-#MESSAGE(" * Build Qt GUI: ${MSG_QT_FOUND}")
-#if(BUILD_USR_DIR)
-#	set(MSG_USR_FOUND "Yes - Found source files")
-#else(BUILD_USR_DIR)
-#	set(MSG_USR_FOUND "No - No usr dir in /src")
-#endif(BUILD_USR_DIR)
-#MESSAGE(" * Build USR DIR: ${MSG_USR_FOUND}")
 MESSAGE(" * Building Doc: No - Type make doc if you want")
 MESSAGE(" * Executing Tests: No - Type make test if you want")
 MESSAGE("")

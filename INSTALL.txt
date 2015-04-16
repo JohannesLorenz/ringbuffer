@@ -8,7 +8,8 @@ CONTENTS
 0 Requirements
 1 Installation
 2 Running
-3 Debugging
+3 Realtime check with stoat
+4 Debugging
 
 0 Requirements
 ::::::::::::::
@@ -16,7 +17,6 @@ CONTENTS
 You will need the following libraries, headers and tools:
 
   * at least g++ 4.8 or clang 3.3
-  * boost % TODO: not
   * cmake
 
 1 Installation of the commandline interface
@@ -35,11 +35,26 @@ In this directory, type:
 2 Running
 :::::::::
 
-You can execute tests now. For example, TODO...
+You can execute tests now:
 
-  ./src/TODO <arguments>
+  make test
 
-3 Debugging
+3 Realtime check with stoat
+:::::::::::::::::::::::::::
+
+Make sure stoat is (root-)installed on your disk.
+
+Instead of using the cmake code from above, use
+
+  cmake -DCOMPILER=stoat ..
+
+Then, run
+
+  make stoat_ringbuffer
+
+The output should prompt a total of 0 errors.
+
+4 Debugging
 :::::::::::
 
 TODO
