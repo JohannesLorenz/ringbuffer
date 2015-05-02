@@ -182,7 +182,8 @@ void ringbuffer_reader_t::connect(ringbuffer_t& _ref)
 }
 
 ringbuffer_reader_t::ringbuffer_reader_t(ringbuffer_t &ref) :
-	ringbuffer_common_t(ref.size), buf(ref.buf), ref(&ref) {
+	ringbuffer_common_t(ref.size), buf(ref.buf), ref(&ref)
+{
 	++ref.num_readers; // register at the writer
 }
 
