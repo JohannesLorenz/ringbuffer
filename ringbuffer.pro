@@ -17,5 +17,7 @@ SOURCES += src/lib/ringbuffer.cpp \
 
 OTHER_FILES += src/lib/CMakeLists.txt \
 	src/test/CMakeLists.txt \
+	src/CMakeLists.txt \
+	src/ringbuffer.pc.in \
 	CMakeLists.txt \
 	src/config.h.in

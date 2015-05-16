@@ -33,8 +33,8 @@ endif()
 #Name your project here
 project(ringbuffer)
 
-SET(VERSION_MAJOR "1")
-SET(VERSION_MINOR "0")
+SET(VERSION_MAJOR "0")
+SET(VERSION_MINOR "8")
 SET(VERSION_PATCH "0")
 SET(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
@@ -53,6 +53,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 # MESSAGE(" * COMPILER: ${COMPILER} (allowed: [gcc|clang])")
 
 SET(COMPILER "" CACHE STRING "Compiler to use (allowed: [gcc|clang|stoat])")
+set_property(CACHE COMPILER PROPERTY STRINGS gcc clang stoat)
+
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release)
 
 # testing
 enable_testing ()
@@ -105,6 +108,26 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wall -Werror ${WARN_EXC} -std=c++11 -pipe")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${FLTO_FLAGS}")
+
+
+
+# install paths
+get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
+if("${LIB64}" STREQUAL "TRUE")
+    set(LIBSUFFIX 64)
+else()
+    set(LIBSUFFIX "")
+endif()
+
+set(RINGBUFFER_LIB_DIR "lib${LIBSUFFIX}" CACHE PATH "Installation directory for libraries")
+set(RINGBUFFER_INC_DIR "include" CACHE PATH "Installation directory for headers")
+mark_as_advanced(
+	RINGBUFFER_LIB_DIR
+	RINGBUFFER_INC_DIR
+	)
+
+
+
 
 MESSAGE("READING SUB-DIRECTORIES...")
 #add_subdirectory(rtosc)
