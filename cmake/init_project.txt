@@ -1,0 +1,30 @@
+# compiler - must be set before the project initialisation
+if(COMPILER_SET STREQUAL "1")
+else() # TODO: use not strequal
+if(COMPILER STREQUAL "gcc")
+	# enable these flags if you get tons of errors from boost...
+	#set(WARN_EXC "-Wno-unused-local-typedefs -Wno-maybe-uninitialized")
+	set(CMAKE_CXX_FLAGS_RELEASE "-flto")
+	set(FLTO_FLAGS "-flto")
+
+	SET( CMAKE_CXX_COMPILER "g++" )
+	SET( CMAKE_C_COMPILER "gcc" )
+elseif(COMPILER STREQUAL "clang")
+	set(FLTO_FLAGS "") # not supported by clang on most platforms
+
+	SET( CMAKE_CXX_COMPILER "clang++" )
+	SET( CMAKE_C_COMPILER "clang" )
+elseif(COMPILER STREQUAL "stoat")
+	set(FLTO_FLAGS "") # not supported
+
+	SET( CMAKE_CXX_COMPILER "/usr/local/bin/stoat-compile++" )
+	SET( CMAKE_CC_COMPILER "/usr/local/bin/stoat-compile" )
+else()
+	message(FATAL_ERROR "Please specify -DCOMPILER=[gcc|clang|stoat]")
+endif()
+else()
+  # inform libraries to not to reset the compiler
+  # this would not be clean and also cause a cmake bug
+  SET(COMPILER_SET "1")
+endif()
+
