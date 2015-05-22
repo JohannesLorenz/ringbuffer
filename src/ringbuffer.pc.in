@@ -1,0 +1,10 @@
+install_prefix=@CMAKE_INSTALL_PREFIX@
+include_prefix=${install_prefix}/@RINGBUFFER_INC_DIR@
+lib_prefix=${install_prefix}/@RINGBUFFER_LIB_DIR@
+
+Name: ringbuffer
+Description: a multi-reader, lock-free ringbuffer lib
+Version: @VERSION@
+Libs: -L${lib_prefix} -lringbuffer
+Cflags: -I${include_prefix}
+

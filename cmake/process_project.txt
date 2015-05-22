@@ -34,12 +34,19 @@ endif()
 endif()
 endif()
 
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/submodules/CMakeLists.txt")
+	set(HAS_SUBMODULES true)
+else()
+	set(HAS_SUBMODULES false)
+endif()
+
 # directories
 SET(src_base "${CMAKE_CURRENT_SOURCE_DIR}/src/")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/src/") # for config.h
-# TODO: if-ed?
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/include")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/submodules")
+if(HAS_SUBMODULES)
+	include_directories("${CMAKE_CURRENT_SOURCE_DIR}/submodules")
+endif()
 
 # functions
 function(m_cp script_name)
@@ -152,7 +159,9 @@ mark_as_advanced(
 MESSAGE("READING SUB-DIRECTORIES...")
 #add_subdirectory(rtosc)
 # TODO: if exists:
-add_subdirectory(submodules)
+if(HAS_SUBMODULES)
+	add_subdirectory(submodules)
+endif()
 add_subdirectory(src)
 add_subdirectory(doc)
 
