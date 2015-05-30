@@ -1,6 +1,9 @@
 # compiler - must be set before the project initialisation
 if(COMPILER_SET STREQUAL "1")
 else() # TODO: use not strequal
+# inform libraries to not to reset the compiler
+# this would not be clean and also cause a cmake bug
+SET(COMPILER_SET "1")
 if(COMPILER STREQUAL "gcc")
 	# enable these flags if you get tons of errors from boost...
 	#set(WARN_EXC "-Wno-unused-local-typedefs -Wno-maybe-uninitialized")
@@ -22,9 +25,5 @@ elseif(COMPILER STREQUAL "stoat")
 else()
 	message(FATAL_ERROR "Please specify -DCOMPILER=[gcc|clang|stoat]")
 endif()
-else()
-  # inform libraries to not to reset the compiler
-  # this would not be clean and also cause a cmake bug
-  SET(COMPILER_SET "1")
 endif()
 
