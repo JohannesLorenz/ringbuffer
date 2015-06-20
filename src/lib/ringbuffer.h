@@ -43,22 +43,9 @@ public:
 //! TODO: specialization for only one reader
 class ringbuffer_t : protected ringbuffer_common_t
 {
-	template<class T>
-	class rb_atomic
-	{
-		std::atomic<T> var;
-	public:
-		T load() const { return var.load(std::memory_order_relaxed); }
-		void store(const T& t) {
-			var.store(t, std::memory_order_relaxed); }
-		rb_atomic() {}
-		rb_atomic(rb_atomic&& other) { store(other.load()); }
-		T operator--() { return --var; }
-	};
-
-	rb_atomic<std::size_t> w_ptr; //!< writer at buf[w_ptr]
+	std::atomic<std::size_t> w_ptr; //!< writer at buf[w_ptr]
 	//! counts number of readers left in previous buffer half
-	rb_atomic<std::size_t> readers_left;
+	std::atomic<std::size_t> readers_left;
 	std::size_t num_readers = 0; //!< to be const after initialisation
 
 #ifdef USE_MLOCK
