@@ -24,7 +24,7 @@
 #include <cstddef>
 #include <algorithm>
 
-#include "config.h"
+#include "config.h" // TODO: -> cpp ? (only mlock?)
 
 template<class T>
 class ringbuffer_t;
@@ -55,8 +55,8 @@ protected:
 #endif
 	using ringbuffer_common_t::ringbuffer_common_t;
 
-	void munlock(const void* const buf);
-	bool mlock(const void* const buf);
+	void munlock(const void* const buf, std::size_t _size);
+	bool mlock(const void* const buf, std::size_t _size);
 	void init_atomic_variables();
 
 	//! version for preloaded write ptr
@@ -101,7 +101,7 @@ public:
 	{
 		init_atomic_variables();
 	}
-	~ringbuffer_t() { munlock(buf); delete[] buf; }
+	~ringbuffer_t() { munlock(buf, size * sizeof(T)); delete[] buf; }
 
 	// TODO: make constexpr if size is
 	//! size that is guaranteed to be writable one all readers
@@ -113,7 +113,7 @@ public:
 
 	//! writes max(cnt, write_space) of src into the buffer
 	//! @return number of bytes successfully written
-	std::size_t write(const char *src, size_t cnt) {
+	std::size_t write(const T *src, size_t cnt) {
 		std_copy func(src);
 		return write_func<std_copy>(func, cnt);
 	}
@@ -143,19 +143,19 @@ public:
 
 	class std_copy
 	{
-		const char* const src;
+		const T* const src;
 	public:
 		void operator()(std::size_t src_off, std::size_t amnt,
-			char* dest)
+			T* dest)
 		{
 			std::copy_n(src + src_off, amnt, dest);
 		}
-		std_copy(const char* src) : src(src) {}
+		std_copy(const T* src) : src(src) {}
 	};
 
 	//! trys to lock the data block using the syscall @a block
 	//! @return true iff mlock() succeeded, i.e. pages are in RAM
-	bool mlock() { return ringbuffer_base::mlock(buf); }
+	bool mlock() { return ringbuffer_base::mlock(buf, size * sizeof(T)); }
 
 	//! overwrites the whole buffer with zeros
 	//! this prevents page faults
@@ -213,15 +213,15 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 		}
 
 		//! single member access
-		const char& operator[](std::size_t idx) {
+		const T& operator[](std::size_t idx) {
 			return *(buf + ((reader_ref->read_ptr + idx) &
 				reader_ref->size_mask));
 		}
 
 		std::size_t size() const { return range; }
 
-		//const char* first_half_ptr() const { return TODO; }
-		const char* second_half_ptr() const { return buf; }
+		//const T* first_half_ptr() const { return TODO; }
+		const T* second_half_ptr() const { return buf; }
 	//	std::size_t first_half_size() const { return ; }
 		//std::size_t second_half_size() const { return TODO }
 	};

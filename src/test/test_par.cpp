@@ -24,10 +24,12 @@
 #include <algorithm>
 #include "../lib/ringbuffer.h"
 
+using m_type = int;
+
 void init_random() { srandom(42); }
 
-char random_number(char max) {
-	return (char)(random() % max);
+m_type random_number(m_type max) {
+	return (m_type)(random() % max);
 }
 
 #ifdef __clang__
@@ -37,13 +39,13 @@ char random_number(char max) {
 #endif
 
 // TODO: test ints (4 bytes)
-using m_reader_t = ringbuffer_reader_t<char>;
-using m_buffer_t = ringbuffer_t<char>;
+using m_reader_t = ringbuffer_reader_t<m_type>;
+using m_buffer_t = ringbuffer_t<m_type>;
 
 void REALTIME read_messages(m_reader_t* _rd)
 {
 	m_reader_t& rd = *_rd;
-	unsigned char r = 0;
+	m_type r = 0;
 	do
 	{
 		while(!rd.read_space())
@@ -53,12 +55,12 @@ void REALTIME read_messages(m_reader_t* _rd)
 			r = rd.read_max(1)[0];
 		}
 
-		while(rd.read_space() < r)
+		while(rd.read_space() < (std::size_t)(r))
 		;
 
 		{
 			auto seq = rd.read_max(r);
-			for(std::size_t x = 0; x < r; ++x) {
+			for(std::size_t x = 0; x < (std::size_t)r; ++x) {
 				//std::cerr << x << ": " << seq[x] << std::endl;
 				assert(seq[x] == r);
 			}
@@ -68,23 +70,23 @@ void REALTIME read_messages(m_reader_t* _rd)
 }
 
 //[[annotate("realtime")]] // TODO
-void REALTIME write_messages(m_buffer_t* rb, const std::vector<char>& random_numbers)
+void REALTIME write_messages(m_buffer_t* rb, const std::vector<m_type>& random_numbers)
 {
-	char tmp_buf[64];
+	m_type tmp_buf[64];
 	for(std::size_t count = 0; count < random_numbers.size(); ++count)
 	{
-		char r = random_numbers[count]; // TODO: itr
+		m_type r = random_numbers[count]; // TODO: itr
 		//random_number(rb->maximum_eventual_write_space() - 1) + 1;
 
 		// spin locks are no good idea here
 		// this is just for demonstration
-		while(rb->write_space() <= (unsigned char)r)
+		while(rb->write_space() <= (unsigned)r)
 		;
 
 		std::fill_n(tmp_buf, r+1, r);
-		assert(rb->write(tmp_buf, r+1) == (unsigned char)(r+1)); // write r r+1 times
+		assert(rb->write(tmp_buf, r+1) == (unsigned)(r+1)); // write r r+1 times
 	}
-	char r = 0;
+	m_type r = 0;
 	rb->write(&r, 1);
 }
 
@@ -98,7 +100,7 @@ int main()
 	rb.mlock();
 
 	constexpr std::size_t max = 10000;
-	std::vector<char> random_numbers(max + 1);
+	std::vector<m_type> random_numbers(max + 1);
 	for(std::size_t count = 0; count < max; ++count)
 	{
 		random_numbers[count] = random_number(rb.maximum_eventual_write_space() - 1) + 1;
