@@ -45,20 +45,19 @@ ringbuffer_common_t::ringbuffer_common_t(std::size_t sz) :
 /*
 	ringbuffer_t
 */
-
-void ringbuffer_base::munlock(const void* const buf, std::size_t _size)
+void ringbuffer_base::munlock(const void* const buf, std::size_t each)
 {
 #ifdef USE_MLOCK
 	if (mlocked) {
-		::munlock(buf, _size);
+		::munlock(buf, size * each);
 	}
 #endif
 }
 
-bool ringbuffer_base::mlock(const void* const buf, std::size_t _size)
+bool ringbuffer_base::mlock(const void* const buf, std::size_t each)
 {
 #ifdef USE_MLOCK
-	if (::mlock(buf, _size))
+	if (::mlock(buf, size * each))
 		return false;
 	else
 	{
@@ -82,32 +81,29 @@ std::size_t ringbuffer_base::write_space_preloaded(std::size_t w,
 
 void ringbuffer_base::init_atomic_variables()
 {
-	w_ptr.store(0, std::memory_order_release); // TODO: relaxed?
-	readers_left.store(0, std::memory_order_release);
+	w_ptr.store(0); // TODO: relaxed?
+	readers_left.store(0);
 }
 
 std::size_t ringbuffer_base::write_space() const
 {
-	return write_space_preloaded(w_ptr.load(std::memory_order_acquire), // TODO: relaxed?
-		readers_left.load(std::memory_order_acquire)); // TODO: consume?
+	return write_space_preloaded(w_ptr.load(), // TODO: relaxed?
+		readers_left.load()); // TODO: consume?
 }
 
-#if 0
-std::size_t ringbuffer_t::write (const char *src, size_t cnt)
+void ringbuffer_base::init_variables_for_write(std::size_t cnt,
+		std::size_t& w, std::size_t& to_write,
+		std::size_t& n1, std::size_t& n2)
 {
-	std::size_t w = w_ptr.load(std::memory_order_acquire); // TODO: relaxed?
-	std::size_t rl = readers_left.load(std::memory_order_acquire); // TODO: consume?
+	w = w_ptr.load(); // TODO: relaxed?
+	std::size_t rl = readers_left.load(); // TODO: consume?
 
 	// size calculations
-	std::size_t free_cnt;
-	if ((free_cnt = write_space_preloaded(w, rl)) == 0) {
-		return 0;
-	}
+	std::size_t free_cnt = write_space_preloaded(w, rl);
 
-	const std::size_t to_write = cnt > free_cnt ? free_cnt : cnt;
+	to_write = cnt > free_cnt ? free_cnt : cnt;
 	const std::size_t cnt2 = w + to_write;
 
-	std::size_t n1, n2;
 	if (cnt2 > size) {
 		n1 = size - w;
 		n2 = cnt2 & size_mask;
@@ -122,63 +118,9 @@ std::size_t ringbuffer_t::write (const char *src, size_t cnt)
 	{
 		if(rl)
 		 throw "impossible";
-		readers_left.store(num_readers, std::memory_order_release);
+		readers_left.store(num_readers);
 	}
 
-	// here starts the writing
-
-	std::copy_n(src, n1, &(buf[w]));
-	w = (w + n1) & size_mask;
-	// update so readers are already informed:
-	w_ptr.store(w, std::memory_order_release);
-
-	if (n2) {
-		std::copy_n(src + n1, n2, &(buf[w]));
-		w = (w + n2) & size_mask;
-		w_ptr.store(w, std::memory_order_release);
-	}
-
-	return to_write;
-}
-#endif
-
-bool ringbuffer_base::init_variables_for_write(std::size_t cnt,
-		std::size_t& w, std::size_t& to_write,
-		std::size_t& n1, std::size_t& n2)
-{
-	w = w_ptr.load(std::memory_order_acquire); // TODO: relaxed?
-	std::size_t rl = readers_left.load(std::memory_order_acquire); // TODO: consume?
-
-	// size calculations
-	std::size_t free_cnt;
-	if ((free_cnt = write_space_preloaded(w, rl)) == 0) {
-		to_write = n1 = n2 = 0;
-		return false;
-	}
-	else
-	{
-
-		to_write = cnt > free_cnt ? free_cnt : cnt;
-		const std::size_t cnt2 = w + to_write;
-
-		if (cnt2 > size) {
-			n1 = size - w;
-			n2 = cnt2 & size_mask;
-		} else {
-			n1 = to_write;
-			n2 = 0;
-		}
-
-		// reset reader_left
-		// TODO: inefficient xor:
-		if((w ^ ((w + to_write) & size_mask)) & (size >> 1)) // msb flipped
-		{
-			if(rl)
-			 throw "impossible";
-			readers_left.store(num_readers, std::memory_order_release);
-		}
-		return true;
-	}
 }
 
 /*
@@ -187,7 +129,6 @@ bool ringbuffer_base::init_variables_for_write(std::size_t cnt,
 ringbuffer_reader_base::ringbuffer_reader_base(std::size_t sz) :
 	ringbuffer_common_t(sz)
 {
-
 }
 
 std::size_t ringbuffer_reader_base::read_space(std::size_t w,

@@ -43,11 +43,35 @@ public:
 
 class ringbuffer_base : protected ringbuffer_common_t
 {
+	template<class T>
+	class rb_atomic
+	{
+		std::atomic<T> var;
+	public:
+		T load(std::memory_order mo = std::memory_order_acquire) const
+		{
+			return var.load(mo);
+		}
+		void store(const T& t, std::memory_order mo =
+			std::memory_order_release) {
+			var.store(t, mo);
+		}
+		rb_atomic() {}
+		//! this shall only be used for construction
+		rb_atomic(rb_atomic&& other) { store(other.load()); }
+
+		T operator--() {
+			return var.fetch_sub(1,
+				std::memory_order_acq_rel); // TODO: ??
+		}
+	};
+
+
 // TODO: anything private?
 protected:
-	std::atomic<std::size_t> w_ptr; //!< writer at buf[w_ptr]
+	rb_atomic<std::size_t> w_ptr; //!< writer at buf[w_ptr]
 	//! counts number of readers left in previous buffer half
-	std::atomic<std::size_t> readers_left;
+	rb_atomic<std::size_t> readers_left;
 	std::size_t num_readers = 0; //!< to be const after initialisation
 
 #ifdef USE_MLOCK
@@ -55,17 +79,18 @@ protected:
 #endif
 	using ringbuffer_common_t::ringbuffer_common_t;
 
-	void munlock(const void* const buf, std::size_t _size);
-	bool mlock(const void* const buf, std::size_t _size);
+	void munlock(const void* const buf, std::size_t each);
+	bool mlock(const void* const buf, std::size_t each);
 	void init_atomic_variables();
 
 	//! version for preloaded write ptr
 	std::size_t write_space_preloaded(std::size_t w,
 		std::size_t rl) const;
 
-	bool init_variables_for_write(std::size_t cnt,
+	void init_variables_for_write(std::size_t cnt,
 		std::size_t& w, std::size_t& to_write,
 		std::size_t& n1, std::size_t& n2);
+
 public:
 	//! returns number of bytes that can be written at least
 	std::size_t write_space() const;
@@ -87,7 +112,7 @@ private:
 public:
 	// TODO: auto mlock for all allocating functions?
 	// (bool auto_mlock param)
-	ringbuffer_t(const ringbuffer_t& other) = delete;
+	ringbuffer_t(const ringbuffer_t& ) = delete;
 
 	//! move ctor. should only be used in sequential mode,
 	//! i.e. for initialization
@@ -129,13 +154,13 @@ public:
 		f(0, n1, buf + w);
 		w = (w + n1) & size_mask;
 		// update so readers are already informed:
-		w_ptr.store(w, std::memory_order_release);
+		w_ptr.store(w);
 
 		if (n2) {
 			//std::copy_n(src + n1, n2, &(buf[w]));
 			f(n1, n2, buf + w);
 			w = (w + n2) & size_mask;
-			w_ptr.store(w, std::memory_order_release);
+			w_ptr.store(w);
 		}
 
 		return to_write;
@@ -266,9 +291,7 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 		// checks if highest bit flipped:
 		if((read_ptr ^ old_read_ptr) & (size >> 1))
 		{
-			//--ref->readers_left;
-			ref->readers_left.fetch_sub(1,
-				std::memory_order_acq_rel); // TODO: ??
+			--ref->readers_left;
 		}
 	}
 
@@ -323,7 +346,7 @@ public:
 	//! returns number of bytes that can be read at least
 	std::size_t read_space() const {
 		std::size_t w =
-			ref->w_ptr.load(std::memory_order_acquire);
+			ref->w_ptr.load();
 		return ringbuffer_reader_base::read_space(w,
 			ref->size,
 			ref->size_mask);
