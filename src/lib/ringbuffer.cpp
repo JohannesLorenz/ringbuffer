@@ -48,7 +48,7 @@ ringbuffer_common_t::ringbuffer_common_t(std::size_t sz) :
 void ringbuffer_base::munlock(const void* const buf, std::size_t each)
 {
 #ifdef USE_MLOCK
-	if (mlocked) {
+	if (buf && mlocked) {
 		::munlock(buf, size * each);
 	}
 #endif
