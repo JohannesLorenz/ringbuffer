@@ -120,6 +120,8 @@ public:
 		ringbuffer_base(other),
 		buf(std::move(other.buf))
 	{
+		if(! buf)
+		 throw "Error allocting ringbuffer.";
 		other.buf = nullptr;
 	}
 
