@@ -22,6 +22,7 @@
 
 #include <atomic>
 #include <cstddef>
+#include <algorithm>
 
 #include "config.h"
 
@@ -107,6 +108,17 @@ public:
 	void touch();
 };
 
+namespace detail
+{
+
+//! returns @a i2 if @a i1 is true, otherwise 0
+template<class T2>
+constexpr T2 if_than_or_zero(const bool& i1, const T2& i2) {
+	return (-((int)i1)) & i2;
+}
+
+}
+
 class ringbuffer_reader_t : protected ringbuffer_common_t
 {
 	const char* buf;
@@ -117,19 +129,20 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 	void try_inc(std::size_t range);
 
 	// TODO: offer first_half_ptr(), first_half_size(), ...
+	template<class rb_ptr_type>
 	class seq_base
 	{
 		const char* const buf;
 		std::size_t range;
 	protected:
-		ringbuffer_reader_t* reader_ref;
+		rb_ptr_type reader_ref;
 	public:
 		//! requests a read sequence of size range
 		//! TODO: two are invalid
-		seq_base(ringbuffer_reader_t& rb, std::size_t range) :
-			buf(rb.buf),
+		seq_base(rb_ptr_type rb, std::size_t range) :
+			buf(rb->buf),
 			range(range),
-			reader_ref(&rb)
+			reader_ref(rb)
 		{
 		}
 
@@ -146,11 +159,12 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 		//std::size_t second_half_size() const { return TODO }
 	};
 
-	class peak_sequence_t : public seq_base {
+	class peak_sequence_t : public seq_base<const ringbuffer_reader_t*> {
 	public:
 		using seq_base::seq_base;
 	};
-	class read_sequence_t : public seq_base {
+
+	class read_sequence_t : public seq_base<ringbuffer_reader_t*> {
 	public:
 		using seq_base::seq_base;
 		//! increases the read_ptr after reading
@@ -159,21 +173,18 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 
 	std::size_t _read_max_spc(std::size_t range) const {
 		std::size_t rs = read_space();
-		return rs2 = rs < range ? rs : range;
+		return std::min(rs, range);
 	}
 
-	template<class Sequence>
-	Sequence _read_max(std::size_t range) {
-		std::size_t rs = read_space();
-		std::size_t rs2 = rs < range ? rs : range;
-		return Sequence(*this, rs2);
-	}
+	static_assert(detail::if_than_or_zero(1, 42) == 42,
+		"if_than_or_zero fails with i1 == true");
+	static_assert(detail::if_than_or_zero(0, 42) == 0,
+		"if_than_or_zero fails with i1 == false");
 
-	template<class Sequence>
-	Sequence _read(std::size_t range) {
+	std::size_t _read_spc(std::size_t range) const {
 		std::size_t rs = read_space();
-		std::size_t rs2 = rs < range ? 0 : range;
-		return Sequence(*this, rs2);
+		// equal to: rs < range ? 0 : range;
+		return detail::if_than_or_zero(rs >= range, range);
 	}
 
 public:
@@ -190,22 +201,22 @@ public:
 	
 	//! reads max(@a range, @a read_space()) bytes
 	read_sequence_t read_max(std::size_t range) {
-		return _read_max<read_sequence_t>(range);
+		return read_sequence_t(this, _read_max_spc(range));
 	}
 	
 	//! reads @a range bytes if @a range <= @a read_space(), otherwise 0
 	read_sequence_t read(std::size_t range) {
-		return _read<read_sequence_t>(range);
+		return read_sequence_t(this, _read_spc(range));
 	}
 
 	//! peaks max(@a range, @a read_space()) bytes
 	peak_sequence_t peak_max(std::size_t range) const {
-		return _read_max<peak_sequence_t>(range);
+		return peak_sequence_t(this, _read_max_spc(range));
 	}
 
 	//! peaks @a range bytes if @a range <= @a read_space(), otherwise 0
 	peak_sequence_t peak(std::size_t range) const {
-		return _read<peak_sequence_t>(range);
+		return peak_sequence_t(this, _read_spc(range));
 	}
 
 	//! returns number of bytes that can be read at least
