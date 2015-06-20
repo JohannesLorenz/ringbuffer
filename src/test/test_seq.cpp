@@ -21,13 +21,17 @@
 #include <cassert>
 #include "../lib/ringbuffer.h"
 
+// TODO: test ints (4 bytes)
+using m_reader_t = ringbuffer_reader_t<char>;
+using m_buffer_t = ringbuffer_t<char>;
+
 int main()
 {
 	try {
 		// test the ringbuffer
-		ringbuffer_t rb(4);
-		ringbuffer_reader_t rd(rb);
-		ringbuffer_reader_t rd2(rb);
+		m_buffer_t rb(4);
+		m_reader_t rd(rb);
+		m_reader_t rd2(rb);
 		assert(!rd.read_space());
 
 		std::size_t n = rb.write("abcd", 5);

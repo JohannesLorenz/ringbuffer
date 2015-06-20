@@ -26,6 +26,7 @@
 
 #include "config.h"
 
+template<class T>
 class ringbuffer_t;
 
 //! common variables for both reader and writer
@@ -40,9 +41,10 @@ public:
 	ringbuffer_common_t(std::size_t sz);
 };
 
-//! TODO: specialization for only one reader
-class ringbuffer_t : protected ringbuffer_common_t
+class ringbuffer_base : protected ringbuffer_common_t
 {
+// TODO: anything private?
+protected:
 	std::atomic<std::size_t> w_ptr; //!< writer at buf[w_ptr]
 	//! counts number of readers left in previous buffer half
 	std::atomic<std::size_t> readers_left;
@@ -51,13 +53,36 @@ class ringbuffer_t : protected ringbuffer_common_t
 #ifdef USE_MLOCK
 	bool mlocked = false;
 #endif
-	char* const buf; // TODO: std::vector?
+	using ringbuffer_common_t::ringbuffer_common_t;
 
-	friend class ringbuffer_reader_t;
+	void munlock(const void* const buf);
+	bool mlock(const void* const buf);
+	void init_atomic_variables();
 
 	//! version for preloaded write ptr
 	std::size_t write_space_preloaded(std::size_t w,
 		std::size_t rl) const;
+
+	bool init_variables_for_write(std::size_t cnt,
+		std::size_t& w, std::size_t& to_write,
+		std::size_t& n1, std::size_t& n2);
+public:
+	//! returns number of bytes that can be written at least
+	std::size_t write_space() const;
+};
+
+//! TODO: specialization for only one reader
+template<class T>
+class ringbuffer_t : public ringbuffer_base
+{
+public:
+	using value_type = T;
+private:
+
+	T* const buf; // TODO: std::vector?
+
+	template<class _T>
+	friend class ringbuffer_reader_t;
 
 public:
 	// TODO: auto mlock for all allocating functions?
@@ -70,8 +95,13 @@ public:
 
 	//! allocating constructor
 	//! @param sz size of buffer being allocated
-	ringbuffer_t(std::size_t sz);
-	~ringbuffer_t();
+	ringbuffer_t(std::size_t sz) :
+		ringbuffer_base(sz),
+		buf(new T[ringbuffer_common_t::size])
+	{
+		init_atomic_variables();
+	}
+	~ringbuffer_t() { munlock(buf); delete[] buf; }
 
 	// TODO: make constexpr if size is
 	//! size that is guaranteed to be writable one all readers
@@ -81,18 +111,12 @@ public:
 		return size >> 1;
 	}
 
-	//! returns number of bytes that can be written at least
-	std::size_t write_space() const;
 	//! writes max(cnt, write_space) of src into the buffer
 	//! @return number of bytes successfully written
 	std::size_t write(const char *src, size_t cnt) {
 		std_copy func(src);
 		return write_func<std_copy>(func, cnt);
 	}
-
-	bool init_variables_for_write(std::size_t cnt,
-		std::size_t& w, std::size_t& to_write,
-		std::size_t& n1, std::size_t& n2);
 
 	template<class Func>
 	std::size_t write_func(Func& f, size_t cnt)
@@ -129,17 +153,16 @@ public:
 		std_copy(const char* src) : src(src) {}
 	};
 
-
-
-
 	//! trys to lock the data block using the syscall @a block
 	//! @return true iff mlock() succeeded, i.e. pages are in RAM
-	bool mlock();
+	bool mlock() { return ringbuffer_base::mlock(buf); }
 
 	//! overwrites the whole buffer with zeros
 	//! this prevents page faults
 	//! only allowed on startup (this is not checked!)
-	void touch();
+	void touch() { std::fill_n(buf, size, 0);
+		// TODO: assertion r = w?
+		/* TODO: correct sizeof? */ }
 };
 
 namespace detail
@@ -153,20 +176,29 @@ constexpr T2 if_than_or_zero(const bool& i1, const T2& i2) {
 
 }
 
-class ringbuffer_reader_t : protected ringbuffer_common_t
+class ringbuffer_reader_base : protected ringbuffer_common_t
 {
-	const char* buf;
-	ringbuffer_t* ref;
+// TODO: any member private?
+protected:
 	std::size_t read_ptr = 0; //!< reader at buf[read_ptr]
 
-	//! increases the @a read_ptr after reading from the buffer
-	void try_inc(std::size_t range);
+	ringbuffer_reader_base(std::size_t sz);
+
+	//! returns number of bytes that can be read at least
+	std::size_t read_space(std::size_t w, std::size_t size, std::size_t size_mask) const;
+};
+
+template<class T>
+class ringbuffer_reader_t : public ringbuffer_reader_base
+{
+	const T* buf;
+	ringbuffer_t<T>* ref;
 
 	// TODO: offer first_half_ptr(), first_half_size(), ...
 	template<class rb_ptr_type>
 	class seq_base
 	{
-		const char* const buf;
+		const T* const buf;
 		std::size_t range;
 	protected:
 		rb_ptr_type reader_ref;
@@ -194,16 +226,20 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 		//std::size_t second_half_size() const { return TODO }
 	};
 
-	class peak_sequence_t : public seq_base<const ringbuffer_reader_t*> {
+	class peak_sequence_t : public seq_base<const ringbuffer_reader_t<T>*> {
 	public:
-		using seq_base::seq_base;
+		// TODO: using-trick
+		using seq_base<const ringbuffer_reader_t<T>*>::seq_base;
 	};
 
-	class read_sequence_t : public seq_base<ringbuffer_reader_t*> {
+	class read_sequence_t : public seq_base<ringbuffer_reader_t<T>*> {
 	public:
-		using seq_base::seq_base;
+		using seq_base<ringbuffer_reader_t<T>*>::seq_base;
 		//! increases the read_ptr after reading
-		~read_sequence_t();
+		~read_sequence_t() {
+			seq_base<ringbuffer_reader_t<T>*>::reader_ref->
+				try_inc(seq_base<ringbuffer_reader_t<T>*>::size());
+		}
 	};
 
 	std::size_t _read_max_spc(std::size_t range) const {
@@ -220,18 +256,50 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 		return detail::if_than_or_zero(read_space() >= range, range);
 	}
 
+	//! increases the @a read_ptr after reading from the buffer
+	void try_inc(std::size_t range)
+	{
+		const std::size_t old_read_ptr = read_ptr;
+
+		read_ptr = (read_ptr + range) & size_mask;
+		// TODO: inefficient xor
+		// checks if highest bit flipped:
+		if((read_ptr ^ old_read_ptr) & (size >> 1))
+		{
+			//--ref->readers_left;
+			ref->readers_left.fetch_sub(1,
+				std::memory_order_acq_rel); // TODO: ??
+		}
+	}
+
 public:
 	//! constuctor. registers this reader at the ringbuffer
 	//! @note careful: this function is @a not thread-safe
-	ringbuffer_reader_t(ringbuffer_t& ref);
+	ringbuffer_reader_t(ringbuffer_t<T> &ref) :
+		ringbuffer_reader_base(ref.size), buf(ref.buf), ref(&ref)
+	{
+		++ref.num_readers; // register at the writer
+	}
 
 	//! constuctor. no registration yet
 	//! thread safe
-	ringbuffer_reader_t(std::size_t sz);
+	ringbuffer_reader_t(std::size_t sz) :
+		ringbuffer_reader_base(sz),
+		buf(nullptr),
+		ref(nullptr) {}
 
 	//! @note careful: this function is @a not thread-safe
-	void connect(ringbuffer_t &ref);
-	
+	void connect(ringbuffer_t<T>& _ref)
+	{
+		if(size != _ref.size)
+		 throw "connecting ringbuffers of incompatible sizes";
+		else {
+			buf = _ref.buf;
+			ref = &_ref;
+			++_ref.num_readers; // register at the writer
+		}
+	}
+
 	//! reads max(@a range, @a read_space()) bytes
 	read_sequence_t read_max(std::size_t range) {
 		return read_sequence_t(this, _read_max_spc(range));
@@ -253,7 +321,13 @@ public:
 	}
 
 	//! returns number of bytes that can be read at least
-	std::size_t read_space() const;
+	std::size_t read_space() const {
+		std::size_t w =
+			ref->w_ptr.load(std::memory_order_acquire);
+		return ringbuffer_reader_base::read_space(w,
+			ref->size,
+			ref->size_mask);
+	}
 };
 
 #endif // RINGBUFFER_H

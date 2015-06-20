@@ -36,9 +36,13 @@ char random_number(char max) {
 	#define REALTIME // replace with "nothing"
 #endif
 
-void REALTIME read_messages(ringbuffer_reader_t* _rd)
+// TODO: test ints (4 bytes)
+using m_reader_t = ringbuffer_reader_t<char>;
+using m_buffer_t = ringbuffer_t<char>;
+
+void REALTIME read_messages(m_reader_t* _rd)
 {
-	ringbuffer_reader_t& rd = *_rd;
+	m_reader_t& rd = *_rd;
 	unsigned char r = 0;
 	do
 	{
@@ -64,7 +68,7 @@ void REALTIME read_messages(ringbuffer_reader_t* _rd)
 }
 
 //[[annotate("realtime")]] // TODO
-void REALTIME write_messages(ringbuffer_t* rb, const std::vector<char>& random_numbers)
+void REALTIME write_messages(m_buffer_t* rb, const std::vector<char>& random_numbers)
 {
 	char tmp_buf[64];
 	for(std::size_t count = 0; count < random_numbers.size(); ++count)
@@ -88,9 +92,9 @@ int main()
 {
 	init_random();
 
-	ringbuffer_t rb(64);
+	m_buffer_t rb(64);
 	constexpr std::size_t n_readers = 2;
-	ringbuffer_reader_t rd[n_readers] = { rb, rb };
+	m_reader_t rd[n_readers] = { rb, rb };
 	rb.mlock();
 
 	constexpr std::size_t max = 10000;

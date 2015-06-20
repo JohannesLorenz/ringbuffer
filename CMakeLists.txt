@@ -7,7 +7,7 @@ set(DESCRIPTION "a lock free, multi-reader ringbuffer lib")
 
 SET(VERSION_MAJOR "0")
 SET(VERSION_MINOR "8")
-SET(VERSION_PATCH "8")
+SET(VERSION_PATCH "9")
 
 # options
 option(USE_MLOCK "provide the mlock system call" ON)

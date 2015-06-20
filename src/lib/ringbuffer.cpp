@@ -45,25 +45,17 @@ ringbuffer_common_t::ringbuffer_common_t(std::size_t sz) :
 /*
 	ringbuffer_t
 */
-ringbuffer_t::ringbuffer_t(std::size_t sz) :
-	ringbuffer_common_t(sz),
-	buf(new char[ringbuffer_common_t::size])
-{
-	w_ptr.store(0, std::memory_order_release); // TODO: relaxed?
-	readers_left.store(0, std::memory_order_release);
-}
 
-ringbuffer_t::~ringbuffer_t()
+void ringbuffer_base::munlock(const void* const buf)
 {
 #ifdef USE_MLOCK
 	if (mlocked) {
 		::munlock(buf, size);
 	}
 #endif
-	delete[] buf;
 }
 
-bool ringbuffer_t::mlock()
+bool ringbuffer_base::mlock(const void* const buf)
 {
 #ifdef USE_MLOCK
 	if (::mlock(buf, size))
@@ -78,21 +70,23 @@ bool ringbuffer_t::mlock()
 #endif
 }
 
-void ringbuffer_t::touch()
-{
-	// TODO: assertion r = w?
-	std::fill_n(buf, size, 0);
-}
+// TODO: only include header with ringbuffer_*_base?
 
-std::size_t ringbuffer_t::write_space_preloaded(std::size_t w,
+std::size_t ringbuffer_base::write_space_preloaded(std::size_t w,
 	std::size_t rl) const
 {
 	return (((size_mask - w) & (size_mask >> 1))) // = before next half
 		+ ((rl == false) * (size >> 1)) // one more block?
-		;
+			;
 }
 
-std::size_t ringbuffer_t::write_space() const
+void ringbuffer_base::init_atomic_variables()
+{
+	w_ptr.store(0, std::memory_order_release); // TODO: relaxed?
+	readers_left.store(0, std::memory_order_release);
+}
+
+std::size_t ringbuffer_base::write_space() const
 {
 	return write_space_preloaded(w_ptr.load(std::memory_order_acquire), // TODO: relaxed?
 		readers_left.load(std::memory_order_acquire)); // TODO: consume?
@@ -148,7 +142,7 @@ std::size_t ringbuffer_t::write (const char *src, size_t cnt)
 }
 #endif
 
-bool ringbuffer_t::init_variables_for_write(std::size_t cnt,
+bool ringbuffer_base::init_variables_for_write(std::size_t cnt,
 		std::size_t& w, std::size_t& to_write,
 		std::size_t& n1, std::size_t& n2)
 {
@@ -190,64 +184,20 @@ bool ringbuffer_t::init_variables_for_write(std::size_t cnt,
 /*
 	ringbuffer_reader_t
 */
-void ringbuffer_reader_t::try_inc(std::size_t range)
-{
-	const std::size_t old_read_ptr = read_ptr;
-
-	read_ptr = (read_ptr + range) & size_mask;
-	// TODO: inefficient xor
-	// checks if highest bit flipped:
-	if((read_ptr ^ old_read_ptr) & (size >> 1))
-	{
-		//--ref->readers_left;
-		ref->readers_left.fetch_sub(1,
-			std::memory_order_acq_rel); // TODO: ??
-	}
-}
-
-ringbuffer_reader_t::ringbuffer_reader_t(std::size_t sz) :
-	ringbuffer_common_t(sz),
-	buf(nullptr),
-	ref(nullptr)
+ringbuffer_reader_base::ringbuffer_reader_base(std::size_t sz) :
+	ringbuffer_common_t(sz)
 {
 
 }
 
-void ringbuffer_reader_t::connect(ringbuffer_t& _ref)
+std::size_t ringbuffer_reader_base::read_space(std::size_t w,
+	std::size_t size, std::size_t size_mask) const
 {
-	if(size != _ref.size)
-	 throw "connecting ringbuffers of incompatible sizes";
-	else {
-		buf = _ref.buf;
-		ref = &_ref;
-		++_ref.num_readers; // register at the writer
-	}
-}
-
-ringbuffer_reader_t::ringbuffer_reader_t(ringbuffer_t &ref) :
-	ringbuffer_common_t(ref.size), buf(ref.buf), ref(&ref)
-{
-	++ref.num_readers; // register at the writer
-}
-
-std::size_t ringbuffer_reader_t::read_space() const
-{
-	const std::size_t
-		w = ref->w_ptr.load(std::memory_order_acquire), // TODO: ??
-		r = read_ptr;
-
+	const std::size_t r = read_ptr;
 	if (w > r) {
 		return w - r;
 	} else {
-		return (w - r + ref->size) & ref->size_mask;
+		return (w - r + size) & size_mask;
 	}
-}
-
-/*
-	read_sequence_t
-*/
-ringbuffer_reader_t::read_sequence_t::~read_sequence_t()
-{
-	reader_ref->try_inc(size());
 }
 
