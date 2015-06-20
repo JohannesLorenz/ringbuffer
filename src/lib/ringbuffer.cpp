@@ -98,6 +98,7 @@ std::size_t ringbuffer_t::write_space() const
 		readers_left.load(std::memory_order_acquire)); // TODO: consume?
 }
 
+#if 0
 std::size_t ringbuffer_t::write (const char *src, size_t cnt)
 {
 	std::size_t w = w_ptr.load(std::memory_order_acquire); // TODO: relaxed?
@@ -144,6 +145,46 @@ std::size_t ringbuffer_t::write (const char *src, size_t cnt)
 	}
 
 	return to_write;
+}
+#endif
+
+bool ringbuffer_t::init_variables_for_write(std::size_t cnt,
+		std::size_t& w, std::size_t& to_write,
+		std::size_t& n1, std::size_t& n2)
+{
+	w = w_ptr.load(std::memory_order_acquire); // TODO: relaxed?
+	std::size_t rl = readers_left.load(std::memory_order_acquire); // TODO: consume?
+
+	// size calculations
+	std::size_t free_cnt;
+	if ((free_cnt = write_space_preloaded(w, rl)) == 0) {
+		to_write = n1 = n2 = 0;
+		return false;
+	}
+	else
+	{
+
+		to_write = cnt > free_cnt ? free_cnt : cnt;
+		const std::size_t cnt2 = w + to_write;
+
+		if (cnt2 > size) {
+			n1 = size - w;
+			n2 = cnt2 & size_mask;
+		} else {
+			n1 = to_write;
+			n2 = 0;
+		}
+
+		// reset reader_left
+		// TODO: inefficient xor:
+		if((w ^ ((w + to_write) & size_mask)) & (size >> 1)) // msb flipped
+		{
+			if(rl)
+			 throw "impossible";
+			readers_left.store(num_readers, std::memory_order_release);
+		}
+		return true;
+	}
 }
 
 /*

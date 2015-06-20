@@ -60,6 +60,8 @@ class ringbuffer_t : protected ringbuffer_common_t
 		std::size_t rl) const;
 
 public:
+	// TODO: auto mlock for all allocating functions?
+	// (bool auto_mlock param)
 	ringbuffer_t(const ringbuffer_t& other) = delete;
 
 	//! move ctor. should only be used in sequential mode,
@@ -83,7 +85,52 @@ public:
 	std::size_t write_space() const;
 	//! writes max(cnt, write_space) of src into the buffer
 	//! @return number of bytes successfully written
-	std::size_t write(const char *src, size_t cnt);
+	std::size_t write(const char *src, size_t cnt) {
+		std_copy func(src);
+		return write_func<std_copy>(func, cnt);
+	}
+
+	bool init_variables_for_write(std::size_t cnt,
+		std::size_t& w, std::size_t& to_write,
+		std::size_t& n1, std::size_t& n2);
+
+	template<class Func>
+	std::size_t write_func(Func& f, size_t cnt)
+	{
+		std::size_t w, to_write;
+		std::size_t n1, n2;
+		init_variables_for_write(cnt, w, to_write, n1, n2);
+
+		//std::copy_n(src, n1, &(buf[w]));
+		f(0, n1, buf + w);
+		w = (w + n1) & size_mask;
+		// update so readers are already informed:
+		w_ptr.store(w, std::memory_order_release);
+
+		if (n2) {
+			//std::copy_n(src + n1, n2, &(buf[w]));
+			f(n1, n2, buf + w);
+			w = (w + n2) & size_mask;
+			w_ptr.store(w, std::memory_order_release);
+		}
+
+		return to_write;
+	}
+
+	class std_copy
+	{
+		const char* const src;
+	public:
+		void operator()(std::size_t src_off, std::size_t amnt,
+			char* dest)
+		{
+			std::copy_n(src + src_off, amnt, dest);
+		}
+		std_copy(const char* src) : src(src) {}
+	};
+
+
+
 
 	//! trys to lock the data block using the syscall @a block
 	//! @return true iff mlock() succeeded, i.e. pages are in RAM
@@ -143,6 +190,7 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 
 		//const char* first_half_ptr() const { return TODO; }
 		const char* second_half_ptr() const { return buf; }
+	//	std::size_t first_half_size() const { return ; }
 		//std::size_t second_half_size() const { return TODO }
 	};
 
