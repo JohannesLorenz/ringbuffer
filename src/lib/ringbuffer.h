@@ -157,6 +157,11 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 		~read_sequence_t();
 	};
 
+	std::size_t _read_max_spc(std::size_t range) const {
+		std::size_t rs = read_space();
+		return rs2 = rs < range ? rs : range;
+	}
+
 	template<class Sequence>
 	Sequence _read_max(std::size_t range) {
 		std::size_t rs = read_space();
@@ -182,20 +187,24 @@ public:
 
 	//! @note careful: this function is @a not thread-safe
 	void connect(ringbuffer_t &ref);
-
+	
+	//! reads max(@a range, @a read_space()) bytes
 	read_sequence_t read_max(std::size_t range) {
 		return _read_max<read_sequence_t>(range);
 	}
-
+	
+	//! reads @a range bytes if @a range <= @a read_space(), otherwise 0
 	read_sequence_t read(std::size_t range) {
 		return _read<read_sequence_t>(range);
 	}
 
-	peak_sequence_t peak_max(std::size_t range) {
+	//! peaks max(@a range, @a read_space()) bytes
+	peak_sequence_t peak_max(std::size_t range) const {
 		return _read_max<peak_sequence_t>(range);
 	}
 
-	peak_sequence_t peak(std::size_t range) {
+	//! peaks @a range bytes if @a range <= @a read_space(), otherwise 0
+	peak_sequence_t peak(std::size_t range) const {
 		return _read<peak_sequence_t>(range);
 	}
 
