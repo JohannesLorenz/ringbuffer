@@ -116,7 +116,12 @@ public:
 
 	//! move ctor. should only be used in sequential mode,
 	//! i.e. for initialization
-	ringbuffer_t(ringbuffer_t&& ) = default;
+	ringbuffer_t(ringbuffer_t&& other) :
+		ringbuffer_base(other),
+		buf(std::move(other.buf))
+	{
+		other.buf = nullptr;
+	}
 
 	//! allocating constructor
 	//! @param sz size of buffer being allocated
