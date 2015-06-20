@@ -159,8 +159,7 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 	};
 
 	std::size_t _read_max_spc(std::size_t range) const {
-		std::size_t rs = read_space();
-		return std::min(rs, range);
+		return std::min(read_space(), range);
 	}
 
 	static_assert(detail::if_than_or_zero(1, 42) == 42,
@@ -169,9 +168,8 @@ class ringbuffer_reader_t : protected ringbuffer_common_t
 		"if_than_or_zero fails with i1 == false");
 
 	std::size_t _read_spc(std::size_t range) const {
-		std::size_t rs = read_space();
-		// equal to: rs < range ? 0 : range;
-		return detail::if_than_or_zero(rs >= range, range);
+		// equal to: read_space() >= range ? range : 0;
+		return detail::if_than_or_zero(read_space() >= range, range);
 	}
 
 public:
