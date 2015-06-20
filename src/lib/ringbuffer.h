@@ -120,8 +120,6 @@ public:
 		ringbuffer_base(other),
 		buf(std::move(other.buf))
 	{
-		if(! buf)
-		 throw "Error allocting ringbuffer.";
 		other.buf = nullptr;
 	}
 
@@ -131,6 +129,8 @@ public:
 		ringbuffer_base(sz),
 		buf(new T[ringbuffer_common_t::size])
 	{
+		if(! buf)
+		 throw "Error allocting ringbuffer.";
 		init_atomic_variables();
 	}
 	~ringbuffer_t() { munlock(buf, size * sizeof(T)); delete[] buf; }
