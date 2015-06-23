@@ -20,6 +20,7 @@
 #ifndef RINGBUFFER_H
 #define RINGBUFFER_H
 
+#include <iostream>
 #include <atomic>
 #include <cstddef>
 #include <algorithm>
@@ -129,6 +130,9 @@ public:
 		ringbuffer_base(sz),
 		buf(new T[ringbuffer_common_t::size])
 	{
+		std::cerr << "buf: " << buf << std::endl;
+		if(! buf)
+		 throw std::bad_alloc();
 		if(! buf)
 		 throw "Error allocting ringbuffer.";
 		init_atomic_variables();
