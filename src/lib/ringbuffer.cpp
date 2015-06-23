@@ -131,8 +131,7 @@ ringbuffer_reader_base::ringbuffer_reader_base(std::size_t sz) :
 {
 }
 
-std::size_t ringbuffer_reader_base::read_space(std::size_t w,
-	std::size_t size, std::size_t size_mask) const
+std::size_t ringbuffer_reader_base::read_space(std::size_t w) const
 {
 	const std::size_t r = read_ptr;
 	if (w > r) {
@@ -142,3 +141,14 @@ std::size_t ringbuffer_reader_base::read_space(std::size_t w,
 	}
 }
 
+std::size_t ringbuffer_reader_base::read_space_1(std::size_t w) const
+{
+	const std::size_t r = read_ptr;
+	return (w >= r) ? (w - r) : (size - r);
+}
+
+std::size_t ringbuffer_reader_base::read_space_2(std::size_t w) const
+{
+	const std::size_t r = read_ptr;
+	return (w < r) * (w); 
+}

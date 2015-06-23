@@ -217,7 +217,11 @@ protected:
 	ringbuffer_reader_base(std::size_t sz);
 
 	//! returns number of bytes that can be read at least
-	std::size_t read_space(std::size_t w, std::size_t size, std::size_t size_mask) const;
+	std::size_t read_space(std::size_t w) const;
+	//! returns read space of first halve (the one starting at read ptr)
+	std::size_t read_space_1(std::size_t w) const;
+	//! returns read space of second halve
+	std::size_t read_space_2(std::size_t w) const;
 };
 
 template<class T>
@@ -252,10 +256,17 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 
 		std::size_t size() const { return range; }
 
-		//const T* first_half_ptr() const { return TODO; }
+		const T* first_half_ptr() const {
+			return buf + reader_ref->ref->w_ptr.load(); }
 		const T* second_half_ptr() const { return buf; }
-	//	std::size_t first_half_size() const { return ; }
-		//std::size_t second_half_size() const { return TODO }
+		std::size_t first_half_size() const {
+			const ringbuffer_t<T>& rb = *reader_ref->ref;
+			return reader_ref->read_space_1(rb.w_ptr.load());
+		}
+		std::size_t second_half_size() const {
+			const ringbuffer_t<T>& rb = *reader_ref->ref;
+			return reader_ref->read_space_2(rb.w_ptr.load());
+		}
 	};
 
 	class peak_sequence_t : public seq_base<const ringbuffer_reader_t<T>*> {
@@ -354,9 +365,7 @@ public:
 	std::size_t read_space() const {
 		std::size_t w =
 			ref->w_ptr.load();
-		return ringbuffer_reader_base::read_space(w,
-			ref->size,
-			ref->size_mask);
+		return ringbuffer_reader_base::read_space(w);
 	}
 };
 

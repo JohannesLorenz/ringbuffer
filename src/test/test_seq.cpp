@@ -45,18 +45,24 @@ int main()
 			assert(rd.read_space() == 3);
 			auto s = rd.read_max(3);
 			assert(s[0] == 97 && s[1] == 98 && s[2] == 99);
+			assert(s.first_half_size() == 3
+				&& !s.second_half_size());
 		}
 		assert(!rd.read_space());
 		assert(!rb.write_space()); // reader 2 is still missing
 		{
 			rd2.read_max(3);
 		}
+		
+		// rb = 4, rd1 = rd2 = 3
 
 		assert(rb.write("ab", 2) == 2);
 		assert(!rb.write_space());
 		{
 			assert(rd.read_space() == 2);
 			auto s = rd.read_max(1);
+			assert(s.first_half_size() == 1
+				&& !s.second_half_size());
 			assert(s[0] == 97);
 		}
 		{
@@ -68,6 +74,9 @@ int main()
 		{
 			rd2.read_max(2);
 		}
+
+		// rb = 2, rd 1 = rd2 = 1
+
 		assert(rb.write_space() == 2);
 		assert(!rd.read_space());
 		rb.write("x", 1);
@@ -75,6 +84,8 @@ int main()
 		{
 			assert(rd2.read_space() == 1);
 			auto s = rd2.read_max(1);
+			assert(s.first_half_size() == 1
+				&& !s.second_half_size());
 			assert(s[0] == 120);
 		}
 		assert(rb.write_space() == 1);
