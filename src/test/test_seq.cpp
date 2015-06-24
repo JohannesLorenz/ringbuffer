@@ -39,6 +39,7 @@ int main()
 		assert(!rb.write_space());
 		// simulate impossible write
 		assert(!rb.write("xyz", 4));
+
 		{
 			assert(rd.read_space() == 3);
 			rd.peak_max(3);
@@ -54,15 +55,15 @@ int main()
 			rd2.read_max(3);
 		}
 		
-		// rb = 4, rd1 = rd2 = 3
+		// rb = rd1 = rd2 = 3
 
 		assert(rb.write("ab", 2) == 2);
 		assert(!rb.write_space());
 		{
 			assert(rd.read_space() == 2);
 			auto s = rd.read_max(1);
-			assert(s.first_half_size() == 1
-				&& !s.second_half_size());
+			assert(s.first_half_size() == 1);
+				assert( !s.second_half_size());
 			assert(s[0] == 97);
 		}
 		{
@@ -75,7 +76,7 @@ int main()
 			rd2.read_max(2);
 		}
 
-		// rb = 2, rd 1 = rd2 = 1
+		// rb = rd1 = rd2 = 1
 
 		assert(rb.write_space() == 2);
 		assert(!rd.read_space());

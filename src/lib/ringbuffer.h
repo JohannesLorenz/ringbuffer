@@ -219,9 +219,9 @@ protected:
 	//! returns number of bytes that can be read at least
 	std::size_t read_space(std::size_t w) const;
 	//! returns read space of first halve (the one starting at read ptr)
-	std::size_t read_space_1(std::size_t w) const;
+	std::size_t read_space_1(std::size_t range) const;
 	//! returns read space of second halve
-	std::size_t read_space_2(std::size_t w) const;
+	std::size_t read_space_2(std::size_t range) const;
 };
 
 template<class T>
@@ -260,12 +260,12 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 			return buf + reader_ref->ref->w_ptr.load(); }
 		const T* second_half_ptr() const { return buf; }
 		std::size_t first_half_size() const {
-			const ringbuffer_t<T>& rb = *reader_ref->ref;
-			return reader_ref->read_space_1(rb.w_ptr.load());
+			//const ringbuffer_t<T>& rb = *reader_ref->ref;
+			return reader_ref->read_space_1(range);
 		}
 		std::size_t second_half_size() const {
-			const ringbuffer_t<T>& rb = *reader_ref->ref;
-			return reader_ref->read_space_2(rb.w_ptr.load());
+			//const ringbuffer_t<T>& rb = *reader_ref->ref;
+			return reader_ref->read_space_2(range);
 		}
 	};
 

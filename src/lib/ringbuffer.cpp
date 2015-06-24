@@ -141,14 +141,17 @@ std::size_t ringbuffer_reader_base::read_space(std::size_t w) const
 	}
 }
 
-std::size_t ringbuffer_reader_base::read_space_1(std::size_t w) const
+std::size_t ringbuffer_reader_base::read_space_1(std::size_t range) const
 {
-	const std::size_t r = read_ptr;
-	return (w >= r) ? (w - r) : (size - r);
+	const std::size_t r = read_ptr,
+		dest = r + range;
+	return (dest >= r) ? (dest - r) : (size - r);
+	
 }
 
-std::size_t ringbuffer_reader_base::read_space_2(std::size_t w) const
+std::size_t ringbuffer_reader_base::read_space_2(std::size_t range) const
 {
-	const std::size_t r = read_ptr;
-	return (w < r) * (w); 
+	const std::size_t r = read_ptr,
+		dest = r + range;
+	return (dest < r) * (dest); 
 }
