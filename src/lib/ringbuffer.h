@@ -20,7 +20,6 @@
 #ifndef RINGBUFFER_H
 #define RINGBUFFER_H
 
-#include <iostream>
 #include <atomic>
 #include <cstddef>
 #include <algorithm>
@@ -130,11 +129,10 @@ public:
 		ringbuffer_base(sz),
 		buf(new T[ringbuffer_common_t::size])
 	{
-		std::cerr << "buf: " << buf << std::endl;
 		if(! buf)
-		 throw std::bad_alloc();
-		if(! buf)
-		 throw "Error allocting ringbuffer.";
+		 throw std::bad_alloc(); // TODO: should new not throw this?
+		//if(! buf)
+		// throw "Error allocting ringbuffer.";
 		init_atomic_variables();
 	}
 	~ringbuffer_t() { munlock(buf, size * sizeof(T)); delete[] buf; }
@@ -253,7 +251,7 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 		}
 
 		//! single member access
-		const T& operator[](std::size_t idx) {
+		const T& operator[](std::size_t idx) const {
 			return *(buf + ((reader_ref->read_ptr + idx) &
 				reader_ref->size_mask));
 		}
@@ -261,7 +259,7 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 		std::size_t size() const { return range; }
 
 		const T* first_half_ptr() const {
-			return buf + reader_ref->ref->w_ptr.load(); }
+			return buf + reader_ref->read_ptr; }
 		const T* second_half_ptr() const { return buf; }
 		std::size_t first_half_size() const {
 			//const ringbuffer_t<T>& rb = *reader_ref->ref;

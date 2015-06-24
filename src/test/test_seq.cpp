@@ -25,6 +25,13 @@
 using m_reader_t = ringbuffer_reader_t<char>;
 using m_buffer_t = ringbuffer_t<char>;
 
+template<class T1, class T2>
+void assert_equal(const T1& val, const T2& exp)
+{
+	if(val != exp)
+	 std::cerr << "Expected " << val << " to be " << exp << std::endl;
+}
+
 int main()
 {
 	try {
@@ -94,6 +101,23 @@ int main()
 			rd.read_max(2);
 		}
 		assert(rb.write_space() == 3);
+		assert(!rd.read_space());
+
+		// rb = rd1 = rd2 = 2
+
+		assert(rb.write("abc", 3) == 3);
+		assert(!rb.write_space());
+		
+		{
+			auto s = rd.read_max(3);
+			assert(s.size()==3);
+			//assert(s.first_half_size() == 2);
+			//assert(s.second_half_size() == 1);
+			assert_equal(s.first_half_ptr()[0], 'a');
+			assert(s.first_half_ptr()[1] == 'b');
+			assert(s.second_half_ptr()[0] == 'c');
+
+		}
 
 	} catch (const char* s)
 	{
