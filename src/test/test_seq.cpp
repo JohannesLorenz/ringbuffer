@@ -19,7 +19,7 @@
 
 #include <iostream>
 #include <cassert>
-#include "../lib/ringbuffer.h"
+#include <ringbuffer/ringbuffer.h>
 
 // TODO: test ints (4 bytes)
 using m_reader_t = ringbuffer_reader_t<char>;

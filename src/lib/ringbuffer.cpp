@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <limits>
 
-#include "ringbuffer.h"
+#include <ringbuffer/ringbuffer.h>
 
 #ifdef USE_MLOCK
 	#include <sys/mman.h>

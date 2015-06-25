@@ -22,7 +22,7 @@
 #include <cassert>
 #include <thread>
 #include <algorithm>
-#include "../lib/ringbuffer.h"
+#include <ringbuffer/ringbuffer.h>
 
 using m_type = int;
 

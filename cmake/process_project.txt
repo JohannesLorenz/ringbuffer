@@ -43,7 +43,7 @@ endif()
 # directories
 SET(src_base "${CMAKE_CURRENT_SOURCE_DIR}/src/")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/src/") # for config.h
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/include")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include") # TODO: libraries only?
 if(HAS_SUBMODULES)
 	include_directories("${CMAKE_CURRENT_SOURCE_DIR}/submodules")
 endif()
@@ -164,6 +164,7 @@ if(HAS_SUBMODULES)
 endif()
 add_subdirectory(src)
 add_subdirectory(doc)
+add_subdirectory(include) # TODO: only for libraries
 
 macro(depend_submodules submodules)
 	foreach(submodule ${submodules})
