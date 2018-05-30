@@ -1,7 +1,7 @@
 /*************************************************************************/
 /* test.cpp - test files for minimal                                     */
-/* Copyright (C) 2014-2015                                               */
-/* Johannes Lorenz (jlsf2013 @ sourceforge)                              */
+/* Copyright (C) 2014-2018                                               */
+/* Johannes Lorenz (j.git@lorenz-ho.me, $$$=@)                           */
 /*                                                                       */
 /* This program is free software; you can redistribute it and/or modify  */
 /* it under the terms of the GNU General Public License as published by  */
