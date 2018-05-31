@@ -1,5 +1,5 @@
 /*************************************************************************/
-/* test.cpp - test files for minimal                                     */
+/* test_par.cpp - test files for parallel ringbuffer writing             */
 /* Copyright (C) 2014-2018                                               */
 /* Johannes Lorenz (j.git@lorenz-ho.me, $$$=@)                           */
 /*                                                                       */
@@ -39,7 +39,6 @@ m_type random_number(m_type max) {
 	#define REALTIME // replace with "nothing"
 #endif
 
-// TODO: test ints (4 bytes)
 using m_reader_t = ringbuffer_reader_t<m_type>;
 using m_buffer_t = ringbuffer_t<m_type>;
 
@@ -70,13 +69,13 @@ void REALTIME read_messages(m_reader_t* _rd)
 
 }
 
-//[[annotate("realtime")]] // TODO
+//[[annotate("realtime")]] // TODO - this is the C++11 way for attributes, should work
 void REALTIME write_messages(m_buffer_t* rb, const std::vector<m_type>& random_numbers)
 {
 	m_type tmp_buf[64];
 	for(std::size_t count = 0; count < random_numbers.size(); ++count)
 	{
-		m_type r = random_numbers[count]; // TODO: itr
+		m_type r = random_numbers[count]; // TODO: use iterator
 		//random_number(rb->maximum_eventual_write_space() - 1) + 1;
 
 		// spin locks are no good idea here

@@ -1,5 +1,5 @@
 /*************************************************************************/
-/* test.cpp - test files for minimal                                     */
+/* test_seq.cpp - test files for sequential ringbuffer writing           */
 /* Copyright (C) 2014-2018                                               */
 /* Johannes Lorenz (j.git@lorenz-ho.me, $$$=@)                           */
 /*                                                                       */
@@ -21,7 +21,6 @@
 #include <cassert>
 #include <ringbuffer/ringbuffer.h>
 
-// TODO: test ints (4 bytes)
 using m_reader_t = ringbuffer_reader_t<char>;
 using m_buffer_t = ringbuffer_t<char>;
 

@@ -24,8 +24,6 @@
 #include <cstddef>
 #include <algorithm>
 
-#include "config.h" // TODO: -> cpp ? (only mlock?)
-
 template<class T>
 class ringbuffer_t;
 
@@ -41,8 +39,14 @@ public:
 	ringbuffer_common_t(std::size_t sz);
 };
 
+// note: the base classes contain the logic without any buffers
+//       especially, they are template-free and their code can easily
+//       be moved into cpp files
+
 class ringbuffer_base : protected ringbuffer_common_t
 {
+	bool mlocked = false;
+
 	template<class T>
 	class rb_atomic
 	{
@@ -66,26 +70,17 @@ class ringbuffer_base : protected ringbuffer_common_t
 		}
 	};
 
-
-// TODO: anything private?
 protected:
 	rb_atomic<std::size_t> w_ptr; //!< writer at buf[w_ptr]
 	//! counts number of readers left in previous buffer half
 	rb_atomic<std::size_t> readers_left;
 	std::size_t num_readers = 0; //!< to be const after initialisation
 
-#ifdef USE_MLOCK
-	bool mlocked = false;
-#endif
 	using ringbuffer_common_t::ringbuffer_common_t;
 
 	void munlock(const void* const buf, std::size_t each);
 	bool mlock(const void* const buf, std::size_t each);
 	void init_atomic_variables();
-
-	//! version for preloaded write ptr
-	std::size_t write_space_preloaded(std::size_t w,
-		std::size_t rl) const;
 
 	void init_variables_for_write(std::size_t cnt,
 		std::size_t& w, std::size_t& to_write,
@@ -94,6 +89,10 @@ protected:
 public:
 	//! returns number of bytes that can be written at least
 	std::size_t write_space() const;
+private:
+	//! version for preloaded write ptr
+	std::size_t write_space_preloaded(std::size_t w,
+		std::size_t rl) const;
 };
 
 //! TODO: specialization for only one reader
@@ -212,7 +211,6 @@ constexpr T2 if_than_or_zero(const bool& i1, const T2& i2) {
 
 class ringbuffer_reader_base : protected ringbuffer_common_t
 {
-// TODO: any member private?
 protected:
 	std::size_t read_ptr = 0; //!< reader at buf[read_ptr]
 
@@ -242,7 +240,7 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 		rb_ptr_type reader_ref;
 	public:
 		//! requests a read sequence of size range
-		//! TODO: two are invalid
+		//! TODO: two are invalid -> ???
 		seq_base(rb_ptr_type rb, std::size_t range) :
 			buf(rb->buf),
 			range(range),
@@ -273,7 +271,7 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 
 	class peak_sequence_t : public seq_base<const ringbuffer_reader_t<T>*> {
 	public:
-		// TODO: using-trick
+		// TODO: are template args required here?
 		using seq_base<const ringbuffer_reader_t<T>*>::seq_base;
 	};
 

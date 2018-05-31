@@ -7,10 +7,10 @@ TARGET =
 DEPENDPATH += . \
 	src/lib \
 	src/test \
-INCLUDEPATH += . src/lib
+INCLUDEPATH += . include
 
 # Input
-HEADERS += src/lib/ringbuffer.h
+HEADERS += include/ringbuffer/ringbuffer.h
 SOURCES += src/lib/ringbuffer.cpp \
 	src/test/test_seq.cpp \
 	src/test/test_par.cpp
