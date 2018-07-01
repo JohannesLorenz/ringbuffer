@@ -52,6 +52,9 @@ void ringbuffer_base::munlock(const void* const buf, std::size_t each)
 	if (buf && mlocked) {
 		::munlock(buf, size * each);
 	}
+#else
+	(void)buf;
+	(void)each;
 #endif
 }
 
@@ -66,6 +69,8 @@ bool ringbuffer_base::mlock(const void* const buf, std::size_t each)
 		return true;
 	}
 #else
+	(void)buf;
+	(void)each;
 	return false;
 #endif
 }

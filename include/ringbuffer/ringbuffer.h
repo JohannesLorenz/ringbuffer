@@ -17,8 +17,8 @@
 /* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110, USA  */
 /*************************************************************************/
 
-#ifndef RINGBUFFER_H
-#define RINGBUFFER_H
+#ifndef NO_CLASH_RINGBUFFER_H
+#define NO_CLASH_RINGBUFFER_H
 
 #include <atomic>
 #include <cstddef>
@@ -231,6 +231,7 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 	ringbuffer_t<T>* ref;
 
 	// TODO: offer first_half_ptr(), first_half_size(), ...
+	//! sequences help reading by providing a ringbuffer-suited operator[]
 	template<class rb_ptr_type>
 	class seq_base
 	{
@@ -266,6 +267,22 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 		std::size_t second_half_size() const {
 			//const ringbuffer_t<T>& rb = *reader_ref->ref;
 			return reader_ref->read_space_2(range);
+		}
+
+		//! copy the current sequence into a buffer
+		bool copy(char* buffer, size_t bsize)
+		{
+			std::size_t h1 = first_half_size(),
+				h2 = second_half_size();
+			if(h1 + h2 < bsize) {
+				return false;
+			} else {
+				std::copy(first_half_ptr(),
+					first_half_ptr() + h1, buffer);
+				std::copy(second_half_ptr(),
+					second_half_ptr() + h2, buffer + h1);
+				return true;
+			}
 		}
 	};
 
@@ -367,6 +384,9 @@ public:
 			ref->w_ptr.load();
 		return ringbuffer_reader_base::read_space(w);
 	}
+
+	//! return the size that the reader expects from the ringbuffer
+	std::size_t get_size() const { return size; }
 };
 
-#endif // RINGBUFFER_H
+#endif // NO_CLASH_RINGBUFFER_H
