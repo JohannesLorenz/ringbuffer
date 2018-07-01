@@ -1,9 +1,10 @@
 set(src_dir "${CMAKE_CURRENT_SOURCE_DIR}")
 
-file(GLOB lib_src ${src_dir}/*.cpp)
-file(GLOB lib_hdr ${src_dir}../../include/ringbuffer/*.h)
+set(src_dir "${CMAKE_CURRENT_SOURCE_DIR}")
+file(GLOB ringbuffer_lib_src ${src_dir}/*.cpp)
+file(GLOB ringbuffer_lib_hdr ${src_dir}../../include/ringbuffer/*.h)
 
-add_library(ringbuffer SHARED ${lib_src} ${lib_hdr})
+add_library(ringbuffer STATIC ${ringbuffer_lib_src} ${ringbuffer_lib_hdr})
 
 install(TARGETS ringbuffer
 	LIBRARY DESTINATION ${INSTALL_LIB_DIR})
