@@ -64,9 +64,10 @@ class ringbuffer_base : protected ringbuffer_common_t
 		//! this shall only be used for construction
 		rb_atomic(rb_atomic&& other) { store(other.load()); }
 
-		T operator--() {
-			return var.fetch_sub(1,
+		rb_atomic<T>& operator--() {
+			var.fetch_sub(1,
 				std::memory_order_acq_rel); // TODO: ??
+			return *this;
 		}
 	};
 
