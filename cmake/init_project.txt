@@ -7,8 +7,8 @@ SET(COMPILER_SET "1")
 if(COMPILER STREQUAL "gcc")
 	# enable these flags if you get tons of errors from boost...
 	#set(WARN_EXC "-Wno-unused-local-typedefs -Wno-maybe-uninitialized")
-	set(CMAKE_CXX_FLAGS_RELEASE "-flto")
-	set(FLTO_FLAGS "-flto")
+#	set(CMAKE_CXX_FLAGS_RELEASE "-flto")
+#	set(FLTO_FLAGS "-flto")
 
 	SET( CMAKE_CXX_COMPILER "g++" )
 	SET( CMAKE_C_COMPILER "gcc" )
