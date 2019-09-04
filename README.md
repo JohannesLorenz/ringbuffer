@@ -11,11 +11,12 @@ Welcome! Thank you for considering the README file.
   5. Installation & Debugging
   6. Examples
   7. Thanks to
-  8. Links
-  9. Contact
+  8. Contact
 
 # 1 What is ringbuffer?
-`ringbuffer' is a simple library containing a ringbuffer (definition see wikipedia todo).
+
+`ringbuffer' is a simple library containing a
+[ringbuffer](https://en.wikipedia.org/wiki/Circular_buffer).
 
 The ringbuffer is lock-free (using atomics only), and allows multiple readers,
 but only one writer.
@@ -23,11 +24,15 @@ but only one writer.
 The ringbuffer is real-time safe, i.e. guarantees that the functions return
 "fast enough" (except to initialization and cleanup routines).
 
+Parts of the code have their origin in
+[JACK's ringbuffer](https://github.com/jackaudio/jack2/blob/develop/common/ringbuffer.c).
+
 # 2 Why using ringbuffer?
 
 As mentioned, the advantages are:
 
- * a leightweight library, few dependencies
+ * minimality
+ * no dependencies
  * lock-freeness while still supporting multiple readers
  * real-time safety
  * safety (tests are included)
@@ -42,16 +47,14 @@ Type make doc for doxygen. TODO: more stuff here...
 Please see the [INSTALL](INSTALL.md) file.
 
 # 6 Examples
+See tests.
 
 # 7 Thanks to
 In alphabetical order, I thank:
-  * Mark McCurry (fundamental) [1] from zynaddsubfx [2]
+  * Martin Pavelek (@he29-net)
+  * The JACK team for their ringbuffer
 
-# 8 Links
-  1. http://fundamental-code.com/
-  2. http://zynaddsubfx.sourceforge.net/
-
-# 9 Contact
+# 8 Contact
 
 Feel free to give feedback. My e-mail address is shown if you execute this in
 a shell:

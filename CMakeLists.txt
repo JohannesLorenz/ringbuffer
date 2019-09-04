@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 2.8)
-include(cmake/init_project.txt)
 
 # settings
 project(ringbuffer)
