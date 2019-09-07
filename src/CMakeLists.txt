@@ -8,5 +8,7 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/version.h"
 # ^ TODO: into common files
 
 add_subdirectory(lib)
-add_subdirectory(test)
+if(CAN_TEST)
+    add_subdirectory(test)
+endif()
 
