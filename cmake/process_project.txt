@@ -8,9 +8,6 @@ MESSAGE(STATUS "Reading configuration...")
 
 # TODO: move a lot of stuff to src directory
 
-# testing -> src?
-enable_testing ()
-
 # directories
 SET(src_base "${CMAKE_CURRENT_SOURCE_DIR}/src/")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/src/") # for config.h
@@ -22,7 +19,7 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
 	${CMAKE_CURRENT_BINARY_DIR}/src/version.h)
 
-# headers
+# system abilities
 INCLUDE(CheckIncludeFiles)
 CHECK_INCLUDE_FILES(sys/mman.h HAVE_SYS_MMAN)
 
@@ -30,6 +27,13 @@ IF(WANT_MLOCK AND HAVE_SYS_MMAN)
     SET(USE_MLOCK ON)
 ELSE()
     SET(USE_MLOCK OFF)
+ENDIF()
+
+try_compile(HAVE_STD_THREAD ${CMAKE_SOURCE_DIR} "${CMAKE_SOURCE_DIR}/cmake/tests/std-thread.cpp")
+IF(HAVE_STD_THREAD)
+    SET(CAN_TEST ON)
+ELSE()
+    SET(CAN_TEST OFF)
 ENDIF()
 
 # warn flags
@@ -77,6 +81,11 @@ add_subdirectory(include) # TODO: only for libraries
 
 SET(DESCRIPTION "A small lock-free, multi-reader ringbuffer")
 
+
+if(CAN_TEST)
+    enable_testing()
+endif()
+
 # CPack
 SET(MY_NAME_CAP ${PROJECT_NAME})
 #SET(MY_NAME_LOW ${PROJECT_NAME}) # (TODO: tolower)
@@ -118,6 +127,7 @@ function(print_summary_base)
 	endif()
 	MESSAGE(" * Build Type: ${CMAKE_BUILD_TYPE} (${MSG_BUILD_TYPE_FLAG})")
         MESSAGE(" * mlock (realtime requirement): ${USE_MLOCK}")
+	MESSAGE(" * can build tests: ${CAN_TEST}")
 	MESSAGE(" * Building Doc: No - Type make doc if you want")
 	MESSAGE(" * Executing Tests: No - Type make test if you want")
         MESSAGE("")
