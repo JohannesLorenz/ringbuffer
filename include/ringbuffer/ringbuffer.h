@@ -184,7 +184,7 @@ public:
 		{
 			std::copy_n(src + src_off, amnt, dest);
 		}
-		std_copy(const T* src) : src(src) {}
+		std_copy(const T* arg_src) : src(arg_src) {}
 	};
 
 	//! trys to lock the data block using the syscall @a block
@@ -205,7 +205,7 @@ namespace detail
 //! returns @a i2 if @a i1 is true, otherwise 0
 template<class T2>
 constexpr T2 if_than_or_zero(const bool& i1, const T2& i2) {
-	return (-((int)i1)) & i2;
+	return (-(static_cast<int>(i1))) & i2;
 }
 
 }
@@ -243,12 +243,15 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 	public:
 		//! requests a read sequence of size range
 		//! TODO: two are invalid -> ???
-		seq_base(rb_ptr_type rb, std::size_t range) :
+		seq_base(rb_ptr_type rb, std::size_t arg_range) :
 			buf(rb->buf),
-			range(range),
+			range(arg_range),
 			reader_ref(rb)
 		{
 		}
+
+		seq_base(const seq_base& other) = delete;
+		seq_base(seq_base&& ) = default;
 
 		//! single member access
 		const T& operator[](std::size_t idx) const {
@@ -287,20 +290,27 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 		}
 	};
 
-	class peak_sequence_t : public seq_base<const ringbuffer_reader_t<T>*> {
+	class peak_sequence_t : public seq_base<const ringbuffer_reader_t<T>*>
+	{
 	public:
 		// TODO: are template args required here?
 		using seq_base<const ringbuffer_reader_t<T>*>::seq_base;
+
+		peak_sequence_t(peak_sequence_t&& ) = default;
 	};
 
-	class read_sequence_t : public seq_base<ringbuffer_reader_t<T>*> {
+	class read_sequence_t : public seq_base<ringbuffer_reader_t<T>*>
+	{
 	public:
 		using seq_base<ringbuffer_reader_t<T>*>::seq_base;
+
 		//! increases the read_ptr after reading
 		~read_sequence_t() {
 			seq_base<ringbuffer_reader_t<T>*>::reader_ref->
 				try_inc(seq_base<ringbuffer_reader_t<T>*>::size());
 		}
+
+		read_sequence_t(read_sequence_t&& ) = default;
 	};
 
 	std::size_t _read_max_spc(std::size_t range) const {
@@ -334,10 +344,10 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 public:
 	//! constuctor. registers this reader at the ringbuffer
 	//! @note careful: this function is @a not thread-safe
-	ringbuffer_reader_t(ringbuffer_t<T> &ref) :
-		ringbuffer_reader_base(ref.size), buf(ref.buf), ref(&ref)
+	ringbuffer_reader_t(ringbuffer_t<T> &arg_ref) :
+		ringbuffer_reader_base(arg_ref.size), buf(arg_ref.buf), ref(&arg_ref)
 	{
-		++ref.num_readers; // register at the writer
+		++arg_ref.num_readers; // register at the writer
 	}
 
 	//! constuctor. no registration yet

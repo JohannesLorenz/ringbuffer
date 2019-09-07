@@ -27,10 +27,10 @@
 
 using m_type = int;
 
-void init_random() { srandom(42); }
+static void init_random() { srandom(42); }
 
-m_type random_number(m_type max) {
-	return (m_type)(random() % max);
+static m_type random_number(m_type max) {
+	return static_cast<m_type>(random() % max);
 }
 
 #ifdef __clang__
@@ -42,7 +42,7 @@ m_type random_number(m_type max) {
 using m_reader_t = ringbuffer_reader_t<m_type>;
 using m_buffer_t = ringbuffer_t<m_type>;
 
-void REALTIME read_messages(m_reader_t* _rd)
+static void REALTIME read_messages(m_reader_t* _rd)
 {
 	m_reader_t& rd = *_rd;
 	m_type r = 0;
@@ -55,12 +55,12 @@ void REALTIME read_messages(m_reader_t* _rd)
 			r = rd.read_max(1)[0];
 		}
 
-		while(rd.read_space() < (std::size_t)(r))
+		while(rd.read_space() < static_cast<std::size_t>(r))
 		;
 
 		{
-			auto seq = rd.read_max(r);
-			for(std::size_t x = 0; x < (std::size_t)r; ++x) {
+			auto seq = rd.read_max(static_cast<std::size_t>(r));
+			for(std::size_t x = 0; x < static_cast<std::size_t>(r); ++x) {
 				//std::cerr << x << ": " << seq[x] << std::endl;
 				assert(seq[x] == r);
 			}
@@ -70,7 +70,8 @@ void REALTIME read_messages(m_reader_t* _rd)
 }
 
 //[[annotate("realtime")]] // TODO - this is the C++11 way for attributes, should work
-void REALTIME write_messages(m_buffer_t* rb, const std::vector<m_type>& random_numbers)
+static void REALTIME
+write_messages(m_buffer_t* rb, const std::vector<m_type>& random_numbers)
 {
 	m_type tmp_buf[64];
 	for(std::size_t count = 0; count < random_numbers.size(); ++count)
@@ -80,11 +81,12 @@ void REALTIME write_messages(m_buffer_t* rb, const std::vector<m_type>& random_n
 
 		// spin locks are no good idea here
 		// this is just for demonstration
-		while(rb->write_space() <= (unsigned)r)
+		while(rb->write_space() <= static_cast<unsigned>(r))
 		;
 
 		std::fill_n(tmp_buf, r+1, r);
-		assert(rb->write(tmp_buf, r+1) == (unsigned)(r+1)); // write r r+1 times
+		assert(rb->write(tmp_buf, static_cast<std::size_t>(r+1)) ==
+			static_cast<std::size_t>(r+1)); // write r r+1 times
 	}
 	m_type r = 0;
 	rb->write(&r, 1);
@@ -103,7 +105,8 @@ int main()
 	std::vector<m_type> random_numbers(max + 1);
 	for(std::size_t count = 0; count < max; ++count)
 	{
-		random_numbers[count] = random_number(rb.maximum_eventual_write_space() - 1) + 1;
+		random_numbers[count] = random_number(
+			static_cast<m_type>(rb.maximum_eventual_write_space() - 1)) + 1;
 	}
 	random_numbers[max] = 0;
 

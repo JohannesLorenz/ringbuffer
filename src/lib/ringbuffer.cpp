@@ -34,7 +34,7 @@ std::size_t ringbuffer_common_t::calc_size(std::size_t sz)
 {
 	std::size_t power_of_two;
 	for (power_of_two = 1;
-		((std::size_t)1 << power_of_two) < sz; power_of_two++) ;
+		(static_cast<std::size_t>(1) << power_of_two) < sz; power_of_two++) ;
 	return 1 << power_of_two;
 }
 
