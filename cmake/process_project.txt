@@ -22,6 +22,16 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
 	${CMAKE_CURRENT_BINARY_DIR}/src/version.h)
 
+# headers
+INCLUDE(CheckIncludeFiles)
+CHECK_INCLUDE_FILES(sys/mman.h HAVE_SYS_MMAN)
+
+IF(WANT_MLOCK AND HAVE_SYS_MMAN)
+    SET(USE_MLOCK ON)
+ELSE()
+    SET(USE_MLOCK OFF)
+ENDIF()
+
 # warn flags
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-Wextra COMPILER_SUPPORTS_WEXTRA)
@@ -100,7 +110,6 @@ INCLUDE(CPack)
 function(print_summary_base)
 	MESSAGE("")
 	MESSAGE("SUMMARY:")
-	MESSAGE(" * Project: ${PROJECT_NAME} ${VERSION}")
 	MESSAGE(" * Compiler used: ${CMAKE_CXX_COMPILER}")
 	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set(MSG_BUILD_TYPE_FLAG ${CMAKE_CXX_FLAGS_DEBUG})
@@ -108,6 +117,8 @@ function(print_summary_base)
 		set(MSG_BUILD_TYPE_FLAG ${CMAKE_CXX_FLAGS_RELEASE})
 	endif()
 	MESSAGE(" * Build Type: ${CMAKE_BUILD_TYPE} (${MSG_BUILD_TYPE_FLAG})")
+        MESSAGE(" * mlock (realtime requirement): ${USE_MLOCK}")
 	MESSAGE(" * Building Doc: No - Type make doc if you want")
 	MESSAGE(" * Executing Tests: No - Type make test if you want")
+        MESSAGE("")
 endfunction()

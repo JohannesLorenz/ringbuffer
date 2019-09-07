@@ -17,4 +17,5 @@ OTHER_FILES += src/lib/CMakeLists.txt \
 	src/CMakeLists.txt \
 	src/ringbuffer.pc.in \
 	CMakeLists.txt \
-	src/config.h.in
+	src/config.h.in \
+	cmake/process_project.txt
