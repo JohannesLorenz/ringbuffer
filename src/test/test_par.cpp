@@ -27,10 +27,13 @@
 
 using m_type = int;
 
-static void init_random() { srandom(42); }
+// we use srand and rand to be ASCII conform (instead of srandom and random)
+// this is no cryptography, so these are OK for testing
+
+static void init_random() { srand(42); }
 
 static m_type random_number(m_type max) {
-	return static_cast<m_type>(random() % max);
+	return static_cast<m_type>(rand() % max);
 }
 
 #ifdef __clang__
