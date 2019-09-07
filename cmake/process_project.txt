@@ -1,10 +1,6 @@
 SET(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-MESSAGE("")
-MESSAGE("WELCOME")
-MESSAGE("This is the Makefile for `${PROJECT_NAME} ${VERSION}'")
-MESSAGE("")
-MESSAGE(STATUS "Reading configuration...")
+MESSAGE(STATUS "Configuring ${PROJECT_NAME} ${VERSION}...")
 
 # TODO: move a lot of stuff to src directory
 
@@ -29,7 +25,7 @@ ELSE()
     SET(USE_MLOCK OFF)
 ENDIF()
 
-try_compile(HAVE_STD_THREAD ${CMAKE_SOURCE_DIR} "${CMAKE_SOURCE_DIR}/cmake/tests/std-thread.cpp")
+try_compile(HAVE_STD_THREAD ${CMAKE_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/tests/std-thread.cpp")
 IF(HAVE_STD_THREAD)
     SET(CAN_TEST ON)
 ELSE()
