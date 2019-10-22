@@ -6,8 +6,6 @@ MESSAGE(STATUS "Configuring ${PROJECT_NAME} ${VERSION}...")
 
 # directories
 SET(src_base "${CMAKE_CURRENT_SOURCE_DIR}/src/")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/src/") # for config.h
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include") # TODO: libraries only?
 
 # special headers -> src?
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in
