@@ -68,6 +68,10 @@ mark_as_advanced(
 	INSTALL_INC_DIR
 	)
 
+if(CAN_TEST)
+    enable_testing()
+endif()
+
 # subdirectories
 add_subdirectory(src)
 add_subdirectory(doc)
@@ -76,9 +80,6 @@ add_subdirectory(include) # TODO: only for libraries
 SET(DESCRIPTION "A small lock-free, multi-reader ringbuffer")
 
 
-if(CAN_TEST)
-    enable_testing()
-endif()
 
 # CPack
 if(RINGBUFFER_DO_CPACK)
