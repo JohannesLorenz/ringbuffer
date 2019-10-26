@@ -8,6 +8,7 @@ add_library(ringbuffer SHARED ${ringbuffer_lib_src} ${ringbuffer_lib_hdr})
 
 include(GenerateExportHeader)
 generate_export_header(ringbuffer)
+
 target_include_directories(ringbuffer PUBLIC
 		# src, for config.h
 		"${CMAKE_CURRENT_BINARY_DIR}/../"
