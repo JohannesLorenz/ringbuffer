@@ -7,12 +7,6 @@ MESSAGE(STATUS "Configuring ${PROJECT_NAME} ${VERSION}...")
 # directories
 SET(src_base "${CMAKE_CURRENT_SOURCE_DIR}/src/")
 
-# special headers -> src?
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/ringbuffer-config.h.in
-	${CMAKE_CURRENT_BINARY_DIR}/src/ringbuffer-config.h)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/ringbuffer-version.h.in
-	${CMAKE_CURRENT_BINARY_DIR}/src/ringbuffer-version.h)
-
 # system abilities
 INCLUDE(CheckIncludeFiles)
 CHECK_INCLUDE_FILES(sys/mman.h HAVE_SYS_MMAN)
@@ -75,11 +69,9 @@ endif()
 # subdirectories
 add_subdirectory(src)
 add_subdirectory(doc)
-add_subdirectory(include) # TODO: only for libraries
+add_subdirectory(include)
 
 SET(DESCRIPTION "A small lock-free, multi-reader ringbuffer")
-
-
 
 # CPack
 if(RINGBUFFER_DO_CPACK)
