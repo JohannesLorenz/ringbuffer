@@ -21,7 +21,7 @@
 #include <limits>
 
 #include <ringbuffer/ringbuffer.h>
-#include "config.h"
+#include "ringbuffer-config.h"
 
 #ifdef USE_MLOCK
 	#include <sys/mman.h>

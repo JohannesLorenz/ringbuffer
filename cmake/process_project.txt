@@ -8,10 +8,10 @@ MESSAGE(STATUS "Configuring ${PROJECT_NAME} ${VERSION}...")
 SET(src_base "${CMAKE_CURRENT_SOURCE_DIR}/src/")
 
 # special headers -> src?
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in
-	${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
-	${CMAKE_CURRENT_BINARY_DIR}/src/version.h)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/ringbuffer-config.h.in
+	${CMAKE_CURRENT_BINARY_DIR}/src/ringbuffer-config.h)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/ringbuffer-version.h.in
+	${CMAKE_CURRENT_BINARY_DIR}/src/ringbuffer-version.h)
 
 # system abilities
 INCLUDE(CheckIncludeFiles)
