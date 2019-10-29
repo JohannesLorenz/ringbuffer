@@ -1,6 +1,6 @@
 /*************************************************************************/
 /* test_par.cpp - test files for parallel ringbuffer writing             */
-/* Copyright (C) 2014-2018                                               */
+/* Copyright (C) 2014-2019                                               */
 /* Johannes Lorenz (j.git@lorenz-ho.me, $$$=@)                           */
 /*                                                                       */
 /* This program is free software; you can redistribute it and/or modify  */
