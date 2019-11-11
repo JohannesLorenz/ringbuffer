@@ -231,10 +231,9 @@ protected:
 template<class T>
 class ringbuffer_reader_t : public ringbuffer_reader_base
 {
-	const T* buf;
+	const T* buf; // This is only read by seq_base // TODO: redundant to ref->buf?
 	ringbuffer_t<T>* ref;
 
-	// TODO: offer first_half_ptr(), first_half_size(), ...
 	//! sequences help reading by providing a ringbuffer-suited operator[]
 	template<class rb_ptr_type>
 	class seq_base
