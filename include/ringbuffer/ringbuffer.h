@@ -196,10 +196,14 @@ public:
 
 	//! overwrites the whole buffer with zeros
 	//! this prevents page faults
-	//! only allowed on startup (this is not checked!)
-	void touch() { std::fill_n(buf, size, 0);
-		// TODO: assertion r = w?
-		/* TODO: correct sizeof? */ }
+	//! only allowed on startup (this is not fully checked!)
+	void touch()
+	{
+		// exclude most situations where the ringbuffer is already filled
+		assert(w_ptr == 0);
+		assert(readers_left == 0);
+		std::fill_n(buf, size, 0);
+	}
 };
 
 namespace detail
