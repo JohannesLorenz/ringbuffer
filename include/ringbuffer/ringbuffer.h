@@ -21,6 +21,7 @@
 #define NO_CLASH_RINGBUFFER_H
 
 #include <atomic>
+#include <cassert>
 #include <cstddef>
 #include <algorithm>
 
@@ -200,9 +201,9 @@ public:
 	void touch()
 	{
 		// exclude most situations where the ringbuffer is already filled
-		assert(w_ptr == 0);
-		assert(readers_left == 0);
-		std::fill_n(buf, size, 0);
+		assert(w_ptr.load() == 0);
+		assert(readers_left.load() == 0);
+		std::fill_n(reinterpret_cast<char*>(buf), size*sizeof(T), '\0');
 	}
 };
 
