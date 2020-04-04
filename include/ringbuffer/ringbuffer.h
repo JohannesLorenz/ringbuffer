@@ -297,29 +297,6 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 		}
 	};
 
-	class peak_sequence_t : public seq_base<const ringbuffer_reader_t<T>*>
-	{
-	public:
-		// TODO: are template args required here?
-		using seq_base<const ringbuffer_reader_t<T>*>::seq_base;
-
-		peak_sequence_t(peak_sequence_t&& ) = default;
-	};
-
-	class read_sequence_t : public seq_base<ringbuffer_reader_t<T>*>
-	{
-	public:
-		using seq_base<ringbuffer_reader_t<T>*>::seq_base;
-
-		//! increases the read_ptr after reading
-		~read_sequence_t() {
-			seq_base<ringbuffer_reader_t<T>*>::reader_ref->
-				try_inc(seq_base<ringbuffer_reader_t<T>*>::size());
-		}
-
-		read_sequence_t(read_sequence_t&& ) = default;
-	};
-
 	std::size_t _read_max_spc(std::size_t range) const {
 		return std::min(read_space(), range);
 	}
@@ -349,6 +326,29 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 	}
 
 public:
+	class peak_sequence_t : public seq_base<const ringbuffer_reader_t<T>*>
+	{
+	public:
+		// TODO: are template args required here?
+		using seq_base<const ringbuffer_reader_t<T>*>::seq_base;
+
+		peak_sequence_t(peak_sequence_t&& ) = default;
+	};
+
+	class read_sequence_t : public seq_base<ringbuffer_reader_t<T>*>
+	{
+	public:
+		using seq_base<ringbuffer_reader_t<T>*>::seq_base;
+
+		//! increases the read_ptr after reading
+		~read_sequence_t() {
+			seq_base<ringbuffer_reader_t<T>*>::reader_ref->
+				try_inc(seq_base<ringbuffer_reader_t<T>*>::size());
+		}
+
+		read_sequence_t(read_sequence_t&& ) = default;
+	};
+
 	//! constuctor. registers this reader at the ringbuffer
 	//! @note careful: this function is @a not thread-safe
 	ringbuffer_reader_t(ringbuffer_t<T> &arg_ref) :
