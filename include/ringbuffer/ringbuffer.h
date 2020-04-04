@@ -376,8 +376,9 @@ public:
 		}
 	}
 
-	//! reads max(@a range, @a read_space()) bytes
-	read_sequence_t read_max(std::size_t range) {
+	//! reads min(@a range, @a read_space()) bytes
+	read_sequence_t read_max(std::size_t range =
+		std::numeric_limits<std::size_t>::max()) {
 		return read_sequence_t(this, _read_max_spc(range));
 	}
 	
@@ -386,8 +387,9 @@ public:
 		return read_sequence_t(this, _read_spc(range));
 	}
 
-	//! peaks max(@a range, @a read_space()) bytes
-	peak_sequence_t peak_max(std::size_t range) const {
+	//! peaks min(@a range, @a read_space()) bytes
+	peak_sequence_t peak_max(std::size_t range =
+		std::numeric_limits<std::size_t>::max()) const {
 		return peak_sequence_t(this, _read_max_spc(range));
 	}
 

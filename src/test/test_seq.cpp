@@ -62,6 +62,7 @@ int main()
 			rd2.read_max(3);
 		}
 		
+		assert(rb.write_space() == 2); // next halve can be written
 		// rb = rd1 = rd2 = 3
 
 		assert(rb.write("ab", 2) == 2);
