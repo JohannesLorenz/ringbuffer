@@ -142,7 +142,7 @@ public:
 	~ringbuffer_t() { munlock(buf, size * sizeof(T)); delete[] buf; }
 
 	// TODO: make constexpr if size is
-	//! size that is guaranteed to be writable one all readers
+	//! size that is guaranteed to be writable once all readers
 	//! are up to date
 	std::size_t maximum_eventual_write_space() const {
 		// TODO: might be (size >> 1 + 1), not sure
