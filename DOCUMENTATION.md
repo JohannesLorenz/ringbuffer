@@ -2,7 +2,14 @@
 
 This file documents some of the functionality.
 
+It is strongly adviced to read and understand this document completely.
+
 There is also doxygen available, see the [README](README.md).
+
+## Preventing page faults
+
+In order to do that, you should call ringbuffer<T>::touch directly after
+the ringbuffer constructor.
 
 ## Basic functionality
 
