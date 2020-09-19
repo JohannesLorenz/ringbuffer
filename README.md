@@ -38,28 +38,32 @@ As mentioned, the advantages are:
  * safety (tests are included)
 
 # 3 License
+
 Please see the [LICENSE](LICENSE.txt) file.
 
 # 4 Documentation
-Type make doc for doxygen. TODO: more stuff here...
+
+See the [DOCUMENTATION](DOCUMENTATION.md) for official docs.
+
+Type make doc for doxygen.
 
 # 5 Installation & Debugging
+
 Please see the [INSTALL](INSTALL.md) file.
 
 # 6 Examples
+
 See tests.
 
 # 7 Thanks to
+
 In alphabetical order, I thank:
   * Martin Pavelek (@he29-net)
   * The JACK team for their ringbuffer
 
 # 8 Contact
 
-Feel free to give feedback. My e-mail address is shown if you execute this in
-a shell:
+Feel free to give feedback on
+[github](https://github.com/JohannesLorenz/ringbuffer).
 
-```sh
-printf "\x6a\x6f\x68\x61\x6e\x6e\x65\x73\x40\x6c\x6f
-\x72\x65\x6e\x7a\x2d\x68\x6f\x2e\x6d\x65\x0a"
-```
+

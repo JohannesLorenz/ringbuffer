@@ -150,6 +150,8 @@ public:
 	}
 
 	//! writes max(cnt, write_space) of src into the buffer
+	//! overwrite this function in your subclass if you do not use
+	//! the standard copier `std_copy`
 	//! @return number of bytes successfully written
 	std::size_t write(const T *src, size_t cnt) {
 		std_copy func(src);
@@ -179,6 +181,8 @@ public:
 		return to_write;
 	}
 
+	//! Standard copier for `write_func`
+	//! Works for all `T` that are copyable (e.g. that have a copy CTOR)
 	class std_copy
 	{
 		const T* const src;
@@ -191,11 +195,11 @@ public:
 		std_copy(const T* arg_src) : src(arg_src) {}
 	};
 
-	//! trys to lock the data block using the syscall @a block
+	//! try to lock the data block using the syscall @a block
 	//! @return true iff mlock() succeeded, i.e. pages are in RAM
 	bool mlock() { return ringbuffer_base::mlock(buf, size * sizeof(T)); }
 
-	//! overwrites the whole buffer with zeros
+	//! overwrite the whole buffer with zeros
 	//! this prevents page faults
 	//! only allowed on startup (this is not fully checked!)
 	void touch()
