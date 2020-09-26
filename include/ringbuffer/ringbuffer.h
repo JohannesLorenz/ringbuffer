@@ -1,6 +1,6 @@
 /*************************************************************************/
 /* ringbuffer - a multi-reader, lock-free ringbuffer lib                 */
-/* Copyright (C) 2014-2019                                               */
+/* Copyright (C) 2014-2020                                               */
 /* Johannes Lorenz (j.git@lorenz-ho.me, $$$=@)                           */
 /*                                                                       */
 /* This program is free software; you can redistribute it and/or modify  */
@@ -28,6 +28,10 @@
 // let CMake define RINGBUFFER_EXPORT
 #include "ringbuffer_export.h"
 
+// Note: all units (size, space, pointers) are units of "T"
+//       e.g. if the current readable space is "4",
+//       this means "4" T, not (necessarily) "4" bytes
+
 template<class T>
 class ringbuffer_t;
 
@@ -37,7 +41,8 @@ class RINGBUFFER_EXPORT ringbuffer_common_t
 private:
 	static std::size_t calc_size(std::size_t sz);
 protected:
-	const std::size_t size; //!< buffer size (2^n for some n)
+	//!< max number of objects in buffer (2^n for some n)
+	const std::size_t size;
 	const std::size_t size_mask; //!< = size - 1
 public:
 	ringbuffer_common_t(std::size_t sz);
@@ -92,7 +97,7 @@ protected:
 		std::size_t& n1, std::size_t& n2);
 
 public:
-	//! returns number of bytes that can be written at least
+	//! returns number of objects that can be written at least
 	std::size_t write_space() const;
 private:
 	//! version for preloaded write ptr
@@ -152,7 +157,7 @@ public:
 	//! writes max(cnt, write_space) of src into the buffer
 	//! overwrite this function in your subclass if you do not use
 	//! the standard copier `std_copy`
-	//! @return number of bytes successfully written
+	//! @return number of objects successfully written
 	std::size_t write(const T *src, size_t cnt) {
 		std_copy func(src);
 		return write_func<std_copy>(func, cnt);
@@ -161,8 +166,8 @@ public:
 	template<class Func>
 	std::size_t write_func(Func& f, size_t cnt)
 	{
-		std::size_t w, to_write;
-		std::size_t n1, n2;
+		std::size_t w, to_write; // w: write ptr, to_write: actually writable
+		std::size_t n1, n2; // n1 + n2 = to_write (1st and 2nd halve)
 		init_variables_for_write(cnt, w, to_write, n1, n2);
 
 		//std::copy_n(src, n1, &(buf[w]));
@@ -229,7 +234,7 @@ protected:
 
 	ringbuffer_reader_base(std::size_t sz);
 
-	//! returns number of bytes that can be read at least
+	//! returns number of objects that can be read at least
 	std::size_t read_space(std::size_t w) const;
 	//! returns read space of first halve (the one starting at read ptr)
 	std::size_t read_space_1(std::size_t range) const;
@@ -252,8 +257,9 @@ class ringbuffer_reader_t : public ringbuffer_reader_base
 	protected:
 		rb_ptr_type reader_ref;
 	public:
-		//! requests a read sequence of size range
-		//! TODO: two are invalid -> ???
+		//! requests a read sequence of size `range`
+		//! `range` can be assumed to be in bounds of read space,
+		//! since sequences are only created by the safe routines below
 		seq_base(rb_ptr_type rb, std::size_t arg_range) :
 			buf(rb->buf),
 			range(arg_range),
@@ -380,29 +386,29 @@ public:
 		}
 	}
 
-	//! reads min(@a range, @a read_space()) bytes
+	//! reads min(@a range, @a read_space()) objects
 	read_sequence_t read_max(std::size_t range =
 		std::numeric_limits<std::size_t>::max()) {
 		return read_sequence_t(this, _read_max_spc(range));
 	}
 	
-	//! reads @a range bytes if @a range <= @a read_space(), otherwise 0
+	//! reads @a range objects if @a range <= @a read_space(), otherwise 0
 	read_sequence_t read(std::size_t range) {
 		return read_sequence_t(this, _read_spc(range));
 	}
 
-	//! peaks min(@a range, @a read_space()) bytes
+	//! peaks min(@a range, @a read_space()) objects
 	peak_sequence_t peak_max(std::size_t range =
 		std::numeric_limits<std::size_t>::max()) const {
 		return peak_sequence_t(this, _read_max_spc(range));
 	}
 
-	//! peaks @a range bytes if @a range <= @a read_space(), otherwise 0
+	//! peaks @a range objects if @a range <= @a read_space(), otherwise 0
 	peak_sequence_t peak(std::size_t range) const {
 		return peak_sequence_t(this, _read_spc(range));
 	}
 
-	//! returns number of bytes that can be read at least
+	//! returns number of objects that can be read at least
 	std::size_t read_space() const {
 		std::size_t w =
 			ref->w_ptr.load();
