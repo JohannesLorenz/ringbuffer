@@ -6,10 +6,19 @@ It is strongly adviced to read and understand this document completely.
 
 There is also doxygen available, see the [README](README.md).
 
+## Locking pages in RAM
+
+Required for realtime safety.
+
+You should call `ringbuffer_t<T>::mlock` after calling the `ringbuffer_t`
+ctor.
+
 ## Preventing page faults
 
-In order to do that, you should call ringbuffer<T>::touch directly after
-the ringbuffer constructor.
+Useful for performance.
+
+You should call `ringbuffer_t<T>::touch` after calling
+`ringbuffer_t<T>::mlock`.
 
 ## Basic functionality
 
