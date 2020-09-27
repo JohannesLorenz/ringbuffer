@@ -88,7 +88,7 @@ protected:
 
 	using ringbuffer_common_t::ringbuffer_common_t;
 
-	void munlock(const void* const buf, std::size_t each);
+	bool munlock(const void* const buf, std::size_t each);
 	bool mlock(const void* const buf, std::size_t each);
 	void init_atomic_variables();
 
@@ -144,7 +144,7 @@ public:
 		// throw "Error allocting ringbuffer.";
 		init_atomic_variables();
 	}
-	~ringbuffer_t() { munlock(buf, size * sizeof(T)); delete[] buf; }
+	~ringbuffer_t() { munlock(); delete[] buf; }
 
 	// TODO: make constexpr if size is
 	//! size that is guaranteed to be writable once all readers
@@ -200,9 +200,13 @@ public:
 		std_copy(const T* arg_src) : src(arg_src) {}
 	};
 
-	//! try to lock the data block using the syscall @a block
-	//! @return true iff mlock() succeeded, i.e. pages are in RAM
-	bool mlock() { return ringbuffer_base::mlock(buf, size * sizeof(T)); }
+	//! try to lock the data block using the syscall @a mlock
+	//! @return true iff the pages are guaranteed to be locked in RAM now
+	bool mlock() { return ringbuffer_base::mlock(buf, sizeof(T)); }
+
+	//! try to unlock the data block using the syscall @a munlock
+	//! @return true iff the pages are guaranteed to be unlocked from RAM now
+	bool munlock() { return ringbuffer_base::munlock(buf, sizeof(T)); }
 
 	//! overwrite the whole buffer with zeros
 	//! this prevents page faults

@@ -46,32 +46,45 @@ ringbuffer_common_t::ringbuffer_common_t(std::size_t sz) :
 /*
 	ringbuffer_t
 */
-void ringbuffer_base::munlock(const void* const buf, std::size_t each)
+bool ringbuffer_base::munlock(const void* const buf, std::size_t each)
 {
+	// we return true iff the buffer is unlocked at return time
 #ifdef USE_MLOCK
-	if (buf && mlocked) {
-		::munlock(buf, size * each);
+	if (!mlocked) {
+		return true;
+	}
+	else {
+		// mlocked is true now
+		if (buf && !::munlock(buf, size * each)) {
+			mlocked = false;
+		}
+		return !mlocked;
 	}
 #else
 	(void)buf;
 	(void)each;
+	return !mlocked;
 #endif
 }
 
 bool ringbuffer_base::mlock(const void* const buf, std::size_t each)
 {
+	// we return true iff the buffer is locked at return time
 #ifdef USE_MLOCK
-	if (::mlock(buf, size * each))
-		return false;
-	else
-	{
-		mlocked = 1;
+	if (mlocked) {
 		return true;
+	}
+	else {
+		// mlocked is false now
+		if (buf && !::mlock(buf, size * each)) {
+			mlocked = true;
+		}
+		return mlocked;
 	}
 #else
 	(void)buf;
 	(void)each;
-	return false;
+	return mlocked;
 #endif
 }
 
