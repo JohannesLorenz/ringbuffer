@@ -24,6 +24,7 @@
 #include <cassert>
 #include <cstddef>
 #include <algorithm>
+#include <limits>
 
 // let CMake define RINGBUFFER_EXPORT
 #include "ringbuffer_export.h"
