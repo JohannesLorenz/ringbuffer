@@ -17,8 +17,6 @@
 /* Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110, USA  */
 /*************************************************************************/
 
-#include <algorithm>
-#include <limits>
 
 #include <ringbuffer/ringbuffer.h>
 #include "ringbuffer-config.h"
