@@ -13,6 +13,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Create Build File
+      run: mkdir build
+    - name: Going to Build File
+      run: cd build
+    - name: Running Cmake
+      run: cmake -DCOMPILER=clang \-DCMAKE_BUILD_TYPE=Release \..
     - name: make
       run: make
     - name: make test
