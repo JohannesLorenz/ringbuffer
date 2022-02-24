@@ -1,0 +1,25 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create Build File
+      run: mkdir build
+    - name: Going to Build File
+      run: cd build
+    - name: Running Cmake
+      run: cmake -DCOMPILER=clang
+    - name: make
+      run: make
+    - name: make test
+      run: make test
