@@ -18,7 +18,7 @@ jobs:
     - name: Going to Build File
       run: cd build
     - name: Running Cmake
-      run: cmake -DCOMPILER=clang \-DCMAKE_BUILD_TYPE=Release \..
+      run: cmake -DCOMPILER=clang
     - name: make
       run: make
     - name: make test
