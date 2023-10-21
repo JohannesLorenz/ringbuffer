@@ -19,12 +19,15 @@ In this directory, type:
 
 ```sh
 mkdir build
-cd build
-# for a release build using clang (suggested), where /path/to/zynaddsubfx is
-# the binary executable for zynaddsubfx
-cmake -DCOMPILER=clang \
-      -DCMAKE_BUILD_TYPE=Release \
-      ..
+cd $_
+cmake ..
+```
+
+The typical options for `cmake` apply, e.g.:
+
+```
+-DCMAKE_BUILD_TYPE=Release
+-DCMAKE_CXX_COMPILER=clang++
 ```
 
 # 3 Running
@@ -36,14 +39,9 @@ make test
 # 4 Realtime check with stoat
 Make sure stoat is (root-)installed on your disk.
 
-Instead of using the cmake code from above, use
+For configuring, use
 ```sh
-cmake -DCOMPILER=stoat ..
-```
-
-Then, run
-```sh
-make stoat_ringbuffer
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=/usr/local/bin/stoat-compile++ ..
 ```
 
 The output should prompt a total of 0 errors.
