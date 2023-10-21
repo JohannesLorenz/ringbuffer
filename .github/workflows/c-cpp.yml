@@ -12,14 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Create Build File
-      run: mkdir build
-    - name: Going to Build File
-      run: cd build
-    - name: Running Cmake
-      run: cmake -DCOMPILER=clang
-    - name: make
-      run: make
-    - name: make test
-      run: make test
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Configure
+      run: mkdir build && cd build && cmake ..
+    - name: Build
+      run: cmake --build build
+    - name: Run tests
+      run: cmake --build build --target test

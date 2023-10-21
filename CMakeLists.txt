@@ -1,12 +1,12 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 
 # settings
 project(ringbuffer)
 set(DESCRIPTION "a lock free, multi-reader ringbuffer lib")
 
 SET(VERSION_MAJOR "0")
-SET(VERSION_MINOR "8")
-SET(VERSION_PATCH "9")
+SET(VERSION_MINOR "9")
+SET(VERSION_PATCH "0")
 
 # options
 option(WANT_MLOCK "provide the mlock system call" ON)

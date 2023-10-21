@@ -58,6 +58,7 @@ See tests.
 # 7 Thanks to
 
 In alphabetical order, I thank:
+  * Harshil-Jani (@Harshil-Jani)
   * Martin Pavelek (@he29-net)
   * The JACK team for their ringbuffer
 
